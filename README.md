@@ -4,8 +4,7 @@
 ## Dependencies
 
 The only dependencie you need is Rust.     
-To get it, check `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh` or [https://www.rust-lang.org/tools/install](Rust web site)
-
+To get it, use `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh` or check [Rust web site](https://www.rust-lang.org/tools/install)
 ## Project
 
 To start the project use:
