@@ -24,7 +24,7 @@ fn main() {
     let mut board: Board = Board::new(TOTAL_TILES);
     let player1 = Player::new(Color::Black, PlayerType::Human);
     let player2 = Player::new(Color::White, PlayerType::Human);
-    let mut players = Players{player1: player1.clone(), player2, current_player: player1};
+    let mut players = Players::new(player1, player2);
     loop {
         match (board.is_finished(), players.is_finished()) {
             (_, (true, Some(color))) => {
@@ -42,14 +42,15 @@ fn main() {
             _ => ()
 
         };
-        let input = match players.current_player.player_type {
-            PlayerType::Human => get_human_input(players.current_player.color),
+        let input = match players.get_current_player().get_player_type() {
+            PlayerType::Human => get_human_input(players.get_current_player().get_player_color()),
             PlayerType::Bot => (0,0)
         };
-        match board.add_value(input, players.current_player.color) {
+        match board.add_value(input, &mut players) {
             Ok(_) => players.next_player(),
             Err(e) => println!("{}", e)
         };
         println!("{}", board);
+        println!("{:?}", players);
     }
 }
