@@ -1,7 +1,7 @@
 use crate::color::Color;
 
 const CAPTURED_NB: usize = 10;
-pub const CAPTURE_RANGE: usize = 1;
+pub const CAPTURE_RANGE: usize = 2;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum PlayerType {
