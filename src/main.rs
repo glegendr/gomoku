@@ -1,4 +1,4 @@
-use std::{io, time};
+use std::{io, time, env};
 mod board;
 use board::{TOTAL_TILES, Board, Input};
 mod error;
@@ -8,6 +8,9 @@ mod players;
 use players::*;
 mod algo;
 use algo::{get_bot_input};
+mod leakser;
+use leakser::{leakser};
+mod parser;
 
 fn get_human_input(_player_color: Color) -> Input {
     let mut guess = String::new();
@@ -23,6 +26,11 @@ fn get_human_input(_player_color: Color) -> Input {
 }
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    match leakser(&args[2..]) {
+       Ok(_) => (),
+       Err(e) => println!("{:?}", e)
+    };
     let mut board: Board = Board::new(TOTAL_TILES);
     let player1 = Player::new(Color::Black, PlayerType::Human);
     let player2 = Player::new(Color::White, PlayerType::Bot);

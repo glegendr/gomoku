@@ -7,6 +7,11 @@ pub enum PlacementError {
     DoubleFreeThree
 }
 
+#[derive(PartialEq, Clone, Copy, Debug)]
+pub enum FlagError {
+    WrongFlag
+}
+
 impl fmt::Display for PlacementError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
