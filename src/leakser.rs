@@ -6,6 +6,7 @@ use crate::players::{CAPTURE_RANGE};
 use crate::error::{FlagError};
 use crate::parser::{check_flags};
 
+//create a generic function
 /*fn get_m_flag(flags: &Vec<String>) -> usize {
     for (i, f) in flags.iter().enumerate() {
         if i + 1 >= flags.len() {
