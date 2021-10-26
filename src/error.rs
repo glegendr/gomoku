@@ -9,7 +9,9 @@ pub enum PlacementError {
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum FlagError {
-    WrongFlag
+    WrongFlag,
+    ErrorTypo,
+    TaMere
 }
 
 impl fmt::Display for PlacementError {

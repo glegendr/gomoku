@@ -9,7 +9,7 @@ use players::*;
 mod algo;
 use algo::{get_bot_input};
 mod leakser;
-use leakser::{leakser};
+use leakser::{leakser, print_helper};
 mod parser;
 
 fn get_human_input(_player_color: Color) -> Input {
@@ -28,8 +28,11 @@ fn get_human_input(_player_color: Color) -> Input {
 fn main() {
     let args: Vec<String> = env::args().collect();
     match leakser(&args[2..]) {
-       Ok(_) => (),
-       Err(e) => println!("{:?}", e)
+        Ok(_) => (),
+        Err(e) => {
+            println!("{:?}", e);
+            print_helper();
+        }
     };
     let mut board: Board = Board::new(TOTAL_TILES);
     let player1 = Player::new(Color::Black, PlayerType::Human);
