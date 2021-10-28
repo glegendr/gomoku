@@ -11,7 +11,11 @@ pub enum PlacementError {
 pub enum FlagError {
     WrongFlag,
     ErrorTypo,
-    TaMere
+    MapTooBig,
+    CapturedTooBig,
+    RangeTooBig,
+    AlignementTooBig,
+    MapTooSmall
 }
 
 impl fmt::Display for PlacementError {

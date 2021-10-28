@@ -23,10 +23,6 @@ pub fn leakser(flags: &[String]) -> Result<(), FlagError> {
     if !check_flags(flags) {
         return Err(FlagError::WrongFlag)
     }
-    println!("{}", get_flag(flags, "-m", "--map", BOARD_LENGTH));
-    println!("{}", get_flag(flags, "-c", "--captured", CAPTURED_NB));
-    println!("{}", get_flag(flags, "-r", "--range", CAPTURE_RANGE));
-    println!("{}", get_flag(flags, "-a", "--alignement", ALIGNEMENT_NB));
     return check_numbers(
         get_flag(flags, "-m", "--map", BOARD_LENGTH),
         get_flag(flags, "-c", "--captured", CAPTURED_NB),

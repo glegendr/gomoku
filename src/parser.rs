@@ -47,22 +47,22 @@ pub fn check_flags(flags: &[String]) -> bool {
 
 pub fn check_numbers(m: usize, c: usize, r: usize, a: usize) -> Result<(), FlagError> {
     if m > BOARD_LENGTH_LIMIT {
-        return Err(FlagError::TaMere);
+        return Err(FlagError::MapTooBig);
     }
     if c > CAPTURED_NB_LIMIT {
-        return Err(FlagError::TaMere);
+        return Err(FlagError::CapturedTooBig);
     }
     if r > CAPTURE_RANGE_LIMIT {
-        return Err(FlagError::TaMere);
+        return Err(FlagError::RangeTooBig);
     }
     if a > ALIGNEMENT_NB_LIMIT {
-        return Err(FlagError::TaMere);
+        return Err(FlagError::AlignementTooBig);
     }
     if m < r || m < a {
-        return Err(FlagError::TaMere);
+        return Err(FlagError::MapTooSmall);
     }
-    if r > a {
-        return Err(FlagError::TaMere);
+    if r >= a {
+        return Err(FlagError::RangeTooBig);
     }
     Ok(())
 }

@@ -1,4 +1,4 @@
-use std::{io, time, env};
+use std::{io, time, env, process};
 mod board;
 use board::{TOTAL_TILES, Board, Input};
 mod error;
@@ -32,6 +32,7 @@ fn main() {
         Err(e) => {
             println!("{:?}", e);
             print_helper();
+            process::exit(1);
         }
     };
     let mut board: Board = Board::new(TOTAL_TILES);
