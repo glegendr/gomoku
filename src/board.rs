@@ -1,6 +1,6 @@
 use std::fmt;
 
-pub const BOARD_LENGTH: usize = 5;
+pub const BOARD_LENGTH: usize = 19;
 pub const TOTAL_TILES: usize = BOARD_LENGTH * BOARD_LENGTH;
 const TOTAL_TILES_MINUS_1: usize = TOTAL_TILES - 1;
 const ALIGNEMENT_NB: usize = 3;
@@ -111,7 +111,7 @@ impl Board {
             case5(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize),
             case5(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),
         ];
-        lst.iter().filter(|x| **x == true).count() as i32
+        lst.iter().fold(0, |acc, x| if *x == true {acc + 1} else {acc}) as i32
     }
 
     pub fn check_double_free_three(&self, input: Input, color: Color) -> bool {
