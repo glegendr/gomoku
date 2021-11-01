@@ -1,7 +1,5 @@
 use crate::color::Color;
 
-const CAPTURED_NB: usize = 10;
-pub const CAPTURE_RANGE: usize = 2;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum PlayerType {
@@ -33,8 +31,8 @@ impl Player {
         self.captured
     }
 
-    pub fn add_capture(&mut self) {
-        self.captured += CAPTURE_RANGE;
+    pub fn add_capture(&mut self, capture_range: usize) {
+        self.captured += capture_range;
     }
 }
 
@@ -42,13 +40,20 @@ impl Player {
 pub struct Players {
     player1: Player,
     player2: Player,
-    current_player: Player
+    current_player: Player,
+    captured_nb: usize,
+    capture_range: usize
 }
 
 impl Players {
-
-    pub fn new(player1: Player, player2: Player) -> Players {
-        Players {player1, player2, current_player: player1}
+    pub fn new(player1: Player, player2: Player, captured_nb: usize, capture_range: usize) -> Players {
+        Players {
+            player1,
+            player2,
+            current_player: player1,
+            captured_nb,
+            capture_range
+        }
     }
 
     pub fn next_player(&mut self) -> () {
@@ -59,10 +64,12 @@ impl Players {
     }
 
     pub fn is_finished(&self) -> (bool, Option<Color>) {
-        match (self.player1.get_player_captured(), self.player2.get_player_captured()) {
-            (CAPTURED_NB.., _) => (true, Some(self.player1.color)),
-            (_, CAPTURED_NB..) => (true, Some(self.player2.color)),
-            _ => (false, None)
+        if self.player1.get_player_captured() >= self.get_captured_nb() {
+            return (true, Some(self.player1.color));
+        } else if self.player2.get_player_captured() >= self.get_captured_nb() {
+            return (true, Some(self.player2.color));
+        } else {
+            return (false, None)
         }
     }
 
@@ -77,10 +84,18 @@ impl Players {
         self.current_player
     }
 
+    fn get_captured_nb(&self) -> usize {
+        self.captured_nb
+    }
+
+    fn get_capture_range(&self) -> usize {
+        self.capture_range
+    }
+
     pub fn add_capture(&mut self, color: Color) {
         match color {
-            Color::Black => self.player1.add_capture(),
-            _ => self.player2.add_capture()
+            Color::Black => self.player1.add_capture(self.get_capture_range()),
+            _ => self.player2.add_capture(self.get_capture_range())
         }
     }
 }

@@ -46,6 +46,12 @@ pub fn check_flags(flags: &[String]) -> bool {
 
 
 pub fn check_numbers(m: usize, c: usize, r: usize, a: usize) -> Result<(), FlagError> {
+    if m < 3 {
+        return Err(FlagError::MapTooSmall);
+    }
+    if c == 0 || a == 0 {
+        return Err(FlagError::CannotAssignZero);
+    }
     if m > BOARD_LENGTH_LIMIT {
         return Err(FlagError::MapTooBig);
     }
@@ -58,7 +64,7 @@ pub fn check_numbers(m: usize, c: usize, r: usize, a: usize) -> Result<(), FlagE
     if a > ALIGNEMENT_NB_LIMIT {
         return Err(FlagError::AlignementTooBig);
     }
-    if m < r || m < a {
+    if m <= r + 1 || m < a {
         return Err(FlagError::MapTooSmall);
     }
     if r >= a {

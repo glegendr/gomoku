@@ -15,7 +15,9 @@ pub enum FlagError {
     CapturedTooBig,
     RangeTooBig,
     AlignementTooBig,
-    MapTooSmall
+    MapTooSmall,
+    CannotAssignZero,
+    PrintHelper
 }
 
 impl fmt::Display for PlacementError {

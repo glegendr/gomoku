@@ -16,19 +16,44 @@ fn get_flag(flags: &[String], f1: &str, f2: &str, ret: usize) -> usize {
     ret
 }
 
-pub fn leakser(flags: &[String]) -> Result<(), FlagError> {
+
+fn check_helper(flags: &mut [String]) -> Result<(), FlagError> {
+    for flag in flags.iter() {
+        if flag == "-h" || flag == "--help" {
+            return Err(FlagError::PrintHelper);
+        }
+    }
+    Ok(())
+}
+
+
+pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize), FlagError> {
+    if flags[0] == "main.rs" {
+        flags = &mut flags[1..];
+    }
+    match check_helper(flags) {
+        Err(e) => return Err(e),
+        _ => ()
+    };
     if !check_args(flags) {
         return Err(FlagError::ErrorTypo)
     }
     if !check_flags(flags) {
         return Err(FlagError::WrongFlag)
     }
-    return check_numbers(
-        get_flag(flags, "-m", "--map", BOARD_LENGTH),
-        get_flag(flags, "-c", "--captured", CAPTURED_NB),
-        get_flag(flags, "-r", "--range", CAPTURE_RANGE),
-        get_flag(flags, "-a", "--alignement", ALIGNEMENT_NB)
-    )
+    let board_length = get_flag(flags, "-m", "--map", BOARD_LENGTH);
+    let captured_nb = get_flag(flags, "-c", "--captured", CAPTURED_NB);
+    let capture_range = get_flag(flags, "-r", "--range", CAPTURE_RANGE);
+    let alignement_nb = get_flag(flags, "-a", "--alignement", ALIGNEMENT_NB);
+    match check_numbers(
+        board_length,
+        captured_nb,
+        capture_range,
+        alignement_nb
+    ) {
+        Err(e) => Err(e),
+        _ => Ok((board_length, captured_nb, capture_range, alignement_nb))
+    }
 }
 
 

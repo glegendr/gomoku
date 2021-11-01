@@ -1,6 +1,6 @@
 use std::{io, time, env, process};
 mod board;
-use board::{TOTAL_TILES, Board, Input};
+use board::{Board, Input};
 mod error;
 mod color;
 use color::{Color};
@@ -26,19 +26,22 @@ fn get_human_input(_player_color: Color) -> Input {
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    match leakser(&args[2..]) {
-        Ok(_) => (),
+    let mut args: Vec<String> = env::args().collect();
+    let mut board: Board;
+    let player1 = Player::new(Color::Black, PlayerType::Human);
+    let player2 = Player::new(Color::White, PlayerType::Bot);
+    let mut players: Players;
+    match leakser(&mut args[1..]) {
+        Ok((m, c, r, a)) => {
+            board = Board::new(m, a, r);
+            players = Players::new(player1, player2, c, r)
+        },
         Err(e) => {
             println!("{:?}", e);
             print_helper();
             process::exit(1);
         }
     };
-    let mut board: Board = Board::new(TOTAL_TILES);
-    let player1 = Player::new(Color::Black, PlayerType::Human);
-    let player2 = Player::new(Color::White, PlayerType::Bot);
-    let mut players = Players::new(player1, player2);
     loop {
         match (board.is_finished(players.get_current_player()), players.is_finished()) {
             (_, (true, Some(color))) => {

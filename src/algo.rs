@@ -6,7 +6,7 @@ use std::thread;
 
 pub fn get_bot_input(players: &Players, board: &Board) -> Input {
     let index = play_everything_and_compute(board.clone(), *players);
-    get_input(index)
+    board.get_input(index)
 }
 
 fn play_everything_and_compute(board: Board, players: Players) -> usize {
@@ -16,7 +16,7 @@ fn play_everything_and_compute(board: Board, players: Players) -> usize {
             let mut new_board = board.clone();
             let mut new_players = players.clone();
             handle.push(thread::spawn(move || {
-                match new_board.add_value(get_input(i), &mut new_players) {
+                match new_board.add_value(new_board.get_input(i), &mut new_players) {
                             Err(_) => return (i32::MIN, i),
                             _ => {
                                 let mut alpha = i32::MIN;
@@ -47,7 +47,7 @@ fn play_everything(board: Board, players: Players) -> Vec<(Board, Players)> {
     let ret = board.get_board().iter().enumerate().fold(Vec::new(), |mut acc, (i, x)| {
         if *x == Tile::Empty {
             let mut founded = false;
-            let input = get_input(i);
+            let input = board.get_input(i);
             for distance in 1..=2 {
                 if get_distance(&board, players.get_current_player().get_player_color().get_inverse_color(), distance, input) {
                     founded = true;
@@ -57,7 +57,7 @@ fn play_everything(board: Board, players: Players) -> Vec<(Board, Players)> {
             if founded {
                 let mut new_board = board.clone();
                 let mut new_players = players.clone();
-                match new_board.add_value(get_input(i), &mut new_players) {
+                match new_board.add_value(board.get_input(i), &mut new_players) {
                     Err(_) => (),
                     _ => acc.push((new_board, new_players)),
                 }
@@ -76,7 +76,7 @@ fn play_everything(board: Board, players: Players) -> Vec<(Board, Players)> {
         });
         let mut new_board = board.clone();
         let mut new_players = players.clone();
-        let ret = match new_board.add_value(get_input(index), &mut new_players) {
+        let ret = match new_board.add_value(board.get_input(index), &mut new_players) {
             Err(_) => (new_board, new_players),
             _ => (new_board, new_players),
         };
@@ -118,7 +118,7 @@ fn get_distance(board: &Board, color: Color, distance: usize, input: Input) -> b
     let mut y: (i32, i32) = (0, -1);
     while loop_index > 0 {
         loop_index -= 1;
-        if (((input.0 as i32) + x.0) as usize) < BOARD_LENGTH && (((input.1 as i32) + y.0) as usize) < BOARD_LENGTH {
+        if (((input.0 as i32) + x.0) as usize) < board.get_size() && (((input.1 as i32) + y.0) as usize) < board.get_size() {
             if let Tile::Color(new_color) = board.get(((((input.0 as i32) + x.0) as usize), (((input.1 as i32) + y.0) as usize))) {
                 if new_color == color {
                     return true
@@ -146,17 +146,17 @@ fn close_heuristic(board: Board, color: Color) -> i32 {
         board.get_board().iter().enumerate().map(|(i, x)| {
             if let Tile::Color(new_color) = x {
                 if *new_color == color {
-                    let input = get_input(i);
+                    let input = board.get_input(i);
                     for distance in 1.. {
                         if get_distance(&board, color.get_inverse_color(), distance, input) {
-                            return (((BOARD_LENGTH as i32 - 1) * 2) - (distance as i32)) as usize
+                            return (((board.get_size() as i32 - 1) * 2) - (distance as i32)) as usize
                         }
                     }
                 }
             }
-            ((BOARD_LENGTH as i32 - 1) * 2) as usize
+            ((board.get_size() as i32 - 1) * 2) as usize
         }).sum::<usize>() as i32
     } else {
-        (BOARD_LENGTH as i32 - 1) * 2
+        (board.get_size() as i32 - 1) * 2
     }
 }
