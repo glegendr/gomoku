@@ -8,16 +8,21 @@ use crate::error::{FlagError};
 
 pub fn check_args(flags: &[String]) -> bool {
     match flags.iter().map(|x| {
-        if x.chars().next() != Some('-') {
-            return false
-        }
-        if x.split('=').collect::<Vec<&str>>().len() != 2 {
-            return false
-        }
-        match x.split('=').collect::<Vec<&str>>()[1].parse::<usize>() {
+        match x.parse::<usize>() {
             Ok(_) => return true,
-            _ => return false
+            Err(_) => {
+                if x.chars().next() != Some('-') {
+                    return false;
+                }
+           }
         };
+        if x.split('=').collect::<Vec<&str>>().len() == 2 {
+            match x.split('=').collect::<Vec<&str>>()[1].parse::<usize>() {
+                Ok(_) => return true,
+                _ => return false
+            };
+        }
+        true
     }).find(|x| *x == false) {
         Some(false) => false,
         _ => true
@@ -25,19 +30,44 @@ pub fn check_args(flags: &[String]) -> bool {
 }
 
 
-pub fn check_flags(flags: &[String]) -> bool {
+fn check_flag_exist(flag: &str) -> bool {
     let lst_flags: Vec<&str> = vec![
         "-m", "--map",
         "-c", "--captured",
         "-r", "--range",
         "-a", "--alignement"
     ];
-    match flags.iter().map(|x| {
-        let flag: Vec<&str> = x.split('=').collect();
-        if lst_flags.iter().any(|z| *z == flag[0]) {
-            return true
+    if lst_flags.iter().any(|x| *x == flag) {
+        return true;
+    }
+    false
+}
+
+
+pub fn check_flags(flags: &[String]) -> bool {
+    match flags.iter().enumerate().map(|(i, x)| {
+        match x.parse::<usize>() {
+            Ok(_) => {
+                if i == 0 {
+                    return false;
+                }
+                return check_flag_exist(flags[i - 1].as_str());
+            },
+            Err(_) => {
+                if x.split('=').collect::<Vec<&str>>().len() == 2 {
+                    return check_flag_exist(x.split('=').collect::<Vec<&str>>()[0]);
+                } else {
+                    if i + 1 >= flags.len() {
+                        return false
+                    }
+                    match flags[i + 1].parse::<usize>() {
+                        Ok(_) => (),
+                        Err(_)=> return false
+                    }
+                    return check_flag_exist(x);
+                }
+            }
         }
-        false
     }).find(|x| *x == false) {
         Some(false) => false,
         _ => true

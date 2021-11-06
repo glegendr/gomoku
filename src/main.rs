@@ -2,6 +2,7 @@ use std::{io, time, env, process};
 mod board;
 use board::{Board, Input};
 mod error;
+use error::{FlagError};
 mod color;
 use color::{Color};
 mod players;
@@ -9,7 +10,7 @@ use players::*;
 mod algo;
 use algo::{get_bot_input};
 mod leakser;
-use leakser::{leakser, print_helper};
+use leakser::{leakser};
 mod parser;
 
 fn get_human_input(_player_color: Color) -> Input {
@@ -37,8 +38,10 @@ fn main() {
             players = Players::new(player1, player2, c, r)
         },
         Err(e) => {
-            println!("{:?}", e);
-            print_helper();
+            println!("{}", e);
+            if e != FlagError::PrintHelper || e != FlagError::PrintRules {
+                println!("for more information use \"cargo run -- --help\"");
+            }
             process::exit(1);
         }
     };
