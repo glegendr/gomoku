@@ -54,11 +54,7 @@ impl Board {
     pub fn is_finished(&self, player: Player) -> (bool, Option<Color>) {
         match self.board.iter().enumerate().map(|(i, x)| {
             if let Tile::Color(color) = x {
-                if *color == player.get_player_color() {
-                    return self.check_victory(i, *color, x, false)
-                } else {
-                    return self.check_victory(i, *color, x, true)
-                }
+                return self.check_victory(i, *color, x, *color == player.get_player_color())
             }
             (false, None)
         }).find(|x| x.0 == true) {
@@ -72,7 +68,7 @@ impl Board {
         }
     }
 
-    pub fn get_free_three(&self, input: Input, color: Color) -> i32 {
+    pub fn _get_free_three(&self, input: Input, color: Color) -> u8 {
         let lst = [
             case1(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x),
             case1(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x),
@@ -111,13 +107,154 @@ impl Board {
             case5(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize),
             case5(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),
         ];
-        lst.iter().fold(0, |acc, x| if *x == true {acc + 1} else {acc}) as i32
+        lst.iter().sum::<u8>()
     }
 
     pub fn check_double_free_three(&self, input: Input, color: Color) -> bool {
-        self.get_free_three(input, color) >= 2
+        let mut count: u8 = 0;
+        count += case1(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x);
+        count += case1(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x);
+        if count >= 2 {
+            return true
+        }
+        count += case1(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case1(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case1(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case1(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case1(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case1(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case2(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x);
+        if count >= 2 {
+            return true
+        }
+        count += case2(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case2(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case2(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize); 
+        if count >= 2 {
+            return true
+        }
+        count += case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x);
+        if count >= 2 {
+            return true
+        }
+        count += case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x);
+        if count >= 2 {
+            return true
+        }
+        count += case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case3(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case3(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize);   
+        if count >= 2 {
+            return true
+        }
+        count += case4(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x);
+        if count >= 2 {
+            return true
+        }
+        count += case4(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x);
+        if count >= 2 {
+            return true
+        }
+        count += case4(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case4(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case4(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case4(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case4(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case4(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x);
+        if count >= 2 {
+            return true
+        }
+        count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x);
+        if count >= 2 {
+            return true
+        }
+        count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case5(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize);
+        if count >= 2 {
+            return true
+        }
+        count += case5(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize);
+        if count >= 2 {
+            return true
+        }
+        false
     }
-    
 
     pub fn add_value(&mut self, input: Input, players: &mut Players) -> Result<(), PlacementError> {
         let color = players.get_current_player().get_player_color();
@@ -144,57 +281,36 @@ impl Board {
         execute_capture(self, input, players, |x, _| x, |x, y| (x as i32 + y) as usize);
     }
 
-    fn check_victory(&self, i: usize, color: Color, x: &Tile, captured: bool) -> (bool, Option<Color>) {
-        if i % BOARD_LENGTH <= BOARD_LENGTH - ALIGNEMENT_NB &&
-            self.board[i..i + ALIGNEMENT_NB].iter().filter(|z| **z == *x).count() == ALIGNEMENT_NB &&
+    fn slice(&self, start: usize, length: usize, f_x: fn(usize, usize) -> usize, f_y: fn(usize, usize) -> usize) -> Vec<Tile> {
+        let mut ret =  Vec::with_capacity(length);
+        for i in 0..length {
+            ret.push(self.board[f_x(start, i) + f_y(start, i) * BOARD_LENGTH])
+        }
+        ret
+    }
+
+    fn check_victory(&self, i: usize, color: Color, tile: &Tile, captured: bool) -> (bool, Option<Color>) {
+        if  i % BOARD_LENGTH <= BOARD_LENGTH - ALIGNEMENT_NB &&
+            self.board[i..i + ALIGNEMENT_NB].iter().all(|x| *x == *tile) &&
             (!captured || cannot_be_captured(self, get_input(i), color, |x, y| (x as i32 + y) as usize, |x, _| x)) {
             return (true, Some(color))
         }
-        if i / BOARD_LENGTH <= BOARD_LENGTH - ALIGNEMENT_NB {
-            if self.board[i..=i + BOARD_LENGTH * (ALIGNEMENT_NB - 1)]
-                .iter()
-                .enumerate()
-                .filter(|(i2, z)| i2 % BOARD_LENGTH == 0 && **z == *x)
-                .count() == ALIGNEMENT_NB &&
-                (!captured || cannot_be_captured(self, get_input(i), color, |x, _| x , |x, y| (x as i32 + y) as usize)) {
-                return (true, Some(color))
-            }
+        if  i / BOARD_LENGTH <= BOARD_LENGTH - ALIGNEMENT_NB &&
+            self.slice(i, ALIGNEMENT_NB, |start, _| start, |_, x| x).iter().all(|x| *x == *tile) &&
+            (!captured || cannot_be_captured(self, get_input(i), color, |x, _| x , |x, y| (x as i32 + y) as usize)) {
+            return (true, Some(color))
         }
         if  i / BOARD_LENGTH <= BOARD_LENGTH - ALIGNEMENT_NB &&
-            i % BOARD_LENGTH <= BOARD_LENGTH - ALIGNEMENT_NB {
-                let mut index = 0;
-            if self.board[i..i + BOARD_LENGTH * (ALIGNEMENT_NB - 1) + ALIGNEMENT_NB]
-                .iter()
-                .enumerate()
-                .filter(|(i2, z)| {
-                    if *i2 == BOARD_LENGTH * index + index && **z == *x {
-                        index += 1;
-                        return true
-                    } 
-                    false
-                })
-                .count() == ALIGNEMENT_NB &&
-                (!captured || cannot_be_captured(self, get_input(i), color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize)) {
-                return (true, Some(color))
-            }
+            i % BOARD_LENGTH <= BOARD_LENGTH - ALIGNEMENT_NB &&
+            self.slice(i, ALIGNEMENT_NB, |start, x| start + x, |_, x| x).iter().all(|x| *x == *tile) &&
+            (!captured || cannot_be_captured(self, get_input(i), color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize)) {
+            return (true, Some(color))
         }
         if  i / BOARD_LENGTH <= BOARD_LENGTH - ALIGNEMENT_NB &&
-            i % BOARD_LENGTH >= ALIGNEMENT_NB - 1 {
-                let mut index = 0;
-            if self.board[i..i + BOARD_LENGTH * (ALIGNEMENT_NB - 1)]
-                .iter()
-                .enumerate()
-                .filter(|(i2, z)| {
-                    if *i2 == BOARD_LENGTH * index - index && **z == *x {
-                            index += 1;
-                            return true
-                        } 
-                        false
-                    })
-                    .count() == ALIGNEMENT_NB &&
-                    (!captured || cannot_be_captured(self, get_input(i), color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize)) {
-                return (true, Some(color))
-            }
+            i % BOARD_LENGTH >= ALIGNEMENT_NB - 1 &&
+            self.slice(i, ALIGNEMENT_NB, |start, x| start - x, |_, x| x).iter().all(|x| *x == *tile) &&
+            (!captured || cannot_be_captured(self, get_input(i), color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize)) {
+            return (true, Some(color))
         }
         (false, None)
     }
@@ -229,16 +345,20 @@ fn cannot_be_captured(
     f_x: fn(usize, i32) -> usize,
     f_y: fn(usize, i32) -> usize
 ) -> bool {
-    let mut vec: Vec<bool> = Vec::new();
     for i in 0..ALIGNEMENT_NB {
         if f_x(input.0, i as i32) < BOARD_LENGTH && f_y(input.1, i as i32) < BOARD_LENGTH {
-            vec.push(cannot_be_captured_prime(board, (f_x(input.0, i as i32), f_y(input.1, i as i32)), color, |x, y| (x as i32 + y) as usize, |x, _| x));
-            vec.push(cannot_be_captured_prime(board, (f_x(input.0, i as i32), f_y(input.1, i as i32)), color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize));
-            vec.push(cannot_be_captured_prime(board, (f_x(input.0, i as i32), f_y(input.1, i as i32)), color, |x, _| x, |x, y| (x as i32 + y) as usize));
-            vec.push(cannot_be_captured_prime(board, (f_x(input.0, i as i32), f_y(input.1, i as i32)), color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize));
+            if !cannot_be_captured_prime(board, (f_x(input.0, i as i32), f_y(input.1, i as i32)), color, |x, y| (x as i32 + y) as usize, |x, _| x) {
+                return false
+            } else if !cannot_be_captured_prime(board, (f_x(input.0, i as i32), f_y(input.1, i as i32)), color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize) {
+                return false
+            } else if !cannot_be_captured_prime(board, (f_x(input.0, i as i32), f_y(input.1, i as i32)), color, |x, _| x, |x, y| (x as i32 + y) as usize) {
+                return false
+            } else if !cannot_be_captured_prime(board, (f_x(input.0, i as i32), f_y(input.1, i as i32)), color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize) {
+                return false
+            }
         }
     }
-    vec.iter().all(|x| *x == true)
+    true
 }
 
 fn cannot_be_captured_prime(
@@ -314,9 +434,9 @@ fn execute_capture(
 }
 
 
-fn case1(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> bool {
+fn case1(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
     if f_x(input.0, 3) > BOARD_LENGTH - 1 || f_x(input.0, -1) > BOARD_LENGTH - 1 || f_y(input.1, 3) > BOARD_LENGTH - 1 || f_y(input.1, -1) > BOARD_LENGTH - 1 {
-        return false
+        return 0
     }
     match (
         color,
@@ -325,15 +445,15 @@ fn case1(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize
         board.get((f_x(input.0, 3), f_y(input.1, 3))),
         board.get((f_x(input.0, -1), f_y(input.1, -1)))
     ) {
-        (Color::Black, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty, Tile::Empty) => true,
-        (Color::White, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty, Tile::Empty) => true,
-        _ => false
+        (Color::Black, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty, Tile::Empty) => 1,
+        (Color::White, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty, Tile::Empty) => 1,
+        _ => 0
     }
 }
 
-fn case2(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> bool {
+fn case2(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
     if f_x(input.0, 2) > BOARD_LENGTH - 1 || f_x(input.0, -2) > BOARD_LENGTH - 1 || f_y(input.1, 2) > BOARD_LENGTH - 1 || f_y(input.1, -2) > BOARD_LENGTH - 1 {
-        return false
+        return 0
     }
     match (
         color,
@@ -342,15 +462,15 @@ fn case2(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize
         board.get((f_x(input.0, -1), f_y(input.1, -1))),
         board.get((f_x(input.0, -2), f_y(input.1, -2)))
     ) {
-        (Color::Black, Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Empty) => true,
-        (Color::White, Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Empty) => true,
-        _ => false
+        (Color::Black, Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Empty) => 1,
+        (Color::White, Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Empty) => 1,
+        _ => 0
     }
 }
 
-fn case3(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> bool {
+fn case3(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
     if f_x(input.0, 4) > BOARD_LENGTH - 1 || f_x(input.0, -1) > BOARD_LENGTH - 1 || f_y(input.1, 4) > BOARD_LENGTH - 1 || f_y(input.1, -1) > BOARD_LENGTH - 1 {
-        return false
+        return 0
     }
     match (
         color,
@@ -360,15 +480,15 @@ fn case3(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize
         board.get((f_x(input.0, 4), f_y(input.1, 4))),
         board.get((f_x(input.0, -1), f_y(input.1, -1)))
     ) {
-        (Color::Black, Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Empty, Tile::Empty) => true,
-        (Color::White, Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Empty, Tile::Empty) => true,
-        _ => false
+        (Color::Black, Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Empty, Tile::Empty) => 1,
+        (Color::White, Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Empty, Tile::Empty) => 1,
+        _ => 0
     }
 }
 
-fn case4(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> bool {
+fn case4(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
     if f_x(input.0, 3) > BOARD_LENGTH - 1 || f_x(input.0, -2) > BOARD_LENGTH - 1 || f_y(input.1, 3) > BOARD_LENGTH - 1 || f_y(input.1, -2) > BOARD_LENGTH - 1 {
-        return false
+        return 0
     }
     match (
         color,
@@ -378,15 +498,15 @@ fn case4(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize
         board.get((f_x(input.0, -1), f_y(input.1, -1))),
         board.get((f_x(input.0, -2), f_y(input.1, -2)))
     ) {
-        (Color::Black, Tile::Empty, Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Empty) => true,
-        (Color::White, Tile::Empty, Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Empty) => true,
-        _ => false
+        (Color::Black, Tile::Empty, Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Empty) => 1,
+        (Color::White, Tile::Empty, Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Empty) => 1,
+        _ => 0
     }
 }
 
-fn case5(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> bool {
+fn case5(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
     if f_x(input.0, 4) > BOARD_LENGTH - 1 || f_x(input.0, -1) > BOARD_LENGTH - 1 || f_y(input.1, 4) > BOARD_LENGTH - 1 || f_y(input.1, -1) > BOARD_LENGTH - 1 {
-        return false
+        return 0
     }
     match (
         color,
@@ -396,8 +516,8 @@ fn case5(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize
         board.get((f_x(input.0, 4), f_y(input.1, 4))),
         board.get((f_x(input.0, -1), f_y(input.1, -1)))
     ) {
-        (Color::Black, Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty, Tile::Empty) => true,
-        (Color::White, Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty, Tile::Empty) => true,
-        _ => false
+        (Color::Black, Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty, Tile::Empty) => 1,
+        (Color::White, Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty, Tile::Empty) => 1,
+        _ => 0
     }
 }

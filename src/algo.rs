@@ -16,10 +16,10 @@ fn play_everything_and_compute(board: Board, players: Players) -> usize {
     for (i, child) in board.get_board().iter().enumerate() {
         if *child == Tile::Empty {
             if pruning_heuristic(get_input(i), &board, players) {
-            let mut new_board = board.clone();
-            let mut new_players = players.clone();
-            handle.push(thread::spawn(move || {
-                match new_board.add_value(get_input(i), &mut new_players) {
+                let mut new_board = board.clone();
+                let mut new_players = players.clone();
+                handle.push(thread::spawn(move || {
+                    match new_board.add_value(get_input(i), &mut new_players) {
                             Err(_) => return (i32::MIN, i),
                             _ => {
                                 let mut alpha = i32::MIN;
@@ -28,10 +28,9 @@ fn play_everything_and_compute(board: Board, players: Players) -> usize {
                                 return (score, i)
                             }
                         }
-                    }
-                )
-            );
-        }
+                    })
+                );
+            }
         }
     };
     let mut values = Vec::new();
@@ -108,31 +107,25 @@ fn minimax(node: Board, depth: usize, maximizing_player: bool, alpha: &mut i32, 
 
 /* HEURISTICS */
 
-fn get_distance(board: &Board, _color: Color, distance: usize, input: Input) -> bool {
-    let mut loop_index = 4 * distance;
-    let mut x: (i32, i32) = (distance as i32, -1);
-    let mut y: (i32, i32) = (0, -1);
-    while loop_index > 0 {
-        loop_index -= 1;
-        if (((input.0 as i32) + x.0) as usize) < BOARD_LENGTH && (((input.1 as i32) + y.0) as usize) < BOARD_LENGTH {
-            if let Tile::Color(_new_color) = board.get(((((input.0 as i32) + x.0) as usize), (((input.1 as i32) + y.0) as usize))) {
-                // if new_color == color {
-                    return true
-                // }
+fn get_distance(board: &Board, distance: i32, input: Input) -> bool {
+    for y in -distance..=distance {
+        if (input.1 as i32) + y < 0 {
+            continue;
+        } else if (input.1 as i32) + y >= BOARD_LENGTH as i32 {
+            break;
+        }
+        for x in -distance..=distance {
+            if (input.0 as i32) + x < 0 || (y != -distance && y != distance && x != -distance && x != distance){
+                continue;
+            } else if (input.0 as i32) + x >= BOARD_LENGTH as i32 {
+                break;
             }
+            if let Tile::Color(_) = board.get((((input.0 as i32) + x) as usize, ((input.1 as i32) + y) as usize)) {
+                return true
+            }
+            
         }
-        x.0 = x.0 + x.1;
-        y.0 = y.0 + y.1;
-        if x.0 == -(distance as i32) {
-            x.1 = 1;
-        } else if x.0 == distance as i32 {
-            x.1 = -1;
-        }
-        if y.0 == -(distance as i32) {
-            y.1 = 1;
-        } else if y.0 == distance as i32 {
-            y.1 = -1;
-        }
+
     }
     false
 }
@@ -144,7 +137,7 @@ fn close_heuristic(board: Board, color: Color) -> i32 {
                 if *new_color == color {
                     let input = get_input(i);
                     for distance in 1.. {
-                        if get_distance(&board, color.get_inverse_color(), distance, input) {
+                        if get_distance(&board, distance, input) {
                             return (((BOARD_LENGTH as i32 - 1) * 2) - (distance as i32)) as usize
                         }
                     }
@@ -158,8 +151,8 @@ fn close_heuristic(board: Board, color: Color) -> i32 {
 }
 
 fn pruning_heuristic(input: Input, board: &Board, players: Players) -> bool {
-    for distance in 1..=2 {
-        if get_distance(board, players.get_current_player().get_player_color().get_inverse_color(), distance, input) {
+    for distance in 1..=1 {
+        if get_distance(board, distance, input) {
             return true
         }
     }
