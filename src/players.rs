@@ -1,6 +1,6 @@
 use crate::color::Color;
 
-const CAPTURED_NB: usize = 10;
+pub const CAPTURED_NB: usize = 10;
 pub const CAPTURE_RANGE: usize = 2;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
@@ -66,7 +66,7 @@ impl Players {
         }
     }
 
-    pub fn _get_player(&self, color: Color) -> Player {
+    pub fn get_player(&self, color: Color) -> Player {
         match color {
             Color::Black => self.player1,
             _ => self.player2

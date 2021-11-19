@@ -3,7 +3,7 @@ use std::fmt;
 pub const BOARD_LENGTH: usize = 19;
 pub const TOTAL_TILES: usize = BOARD_LENGTH * BOARD_LENGTH;
 const TOTAL_TILES_MINUS_1: usize = TOTAL_TILES - 1;
-const ALIGNEMENT_NB: usize = 3;
+const ALIGNEMENT_NB: usize = 5;
 use crate::error::PlacementError;
 use crate::color::Color;
 use crate::players::{Players, CAPTURE_RANGE, Player};

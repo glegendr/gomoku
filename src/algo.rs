@@ -4,14 +4,16 @@ use crate::color::*;
 use std::cmp::{min, max};
 use std::thread;
 
-const MINMAX_DEPTH: usize = 5;
+const MINMAX_DEPTH: usize = 4;
 
 pub fn get_bot_input(players: &Players, board: &Board) -> Input {
-    let index = play_everything_and_compute(board.clone(), *players);
+    let index = play_everything_and_compute(board.clone(), *players, players.get_current_player().get_player_color());
+    //let index = minimax(board.clone(), MINMAX_DEPTH, true, i32::MIN, i32::MAX, *players, players.get_current_player().get_player_color());
+    //println!("{}", index.0);
     get_input(index)
 }
 
-fn play_everything_and_compute(board: Board, players: Players) -> usize {
+fn play_everything_and_compute(board: Board, players: Players, color: Color) -> usize {
     let mut handle = Vec::new();
     for (i, child) in board.get_board().iter().enumerate() {
         if *child == Tile::Empty {
@@ -22,9 +24,8 @@ fn play_everything_and_compute(board: Board, players: Players) -> usize {
                     match new_board.add_value(get_input(i), &mut new_players) {
                             Err(_) => return (i32::MIN, i),
                             _ => {
-                                let mut alpha = i32::MIN;
-                                let mut beta = i32::MAX;
-                                let score = minimax(new_board, MINMAX_DEPTH - 1 , false, &mut alpha, &mut beta, new_players);
+                                new_players.next_player();
+                                let score = minimax(new_board, MINMAX_DEPTH - 1 , false, i32::MIN, i32::MAX, new_players, color);
                                 return (score, i)
                             }
                         }
@@ -37,6 +38,7 @@ fn play_everything_and_compute(board: Board, players: Players) -> usize {
     for child in handle {
         values.push(child.join().unwrap());
     }
+    //println!("{:?}", values.iter().map(|x| (x.0, get_input(x.1))).collect::<Vec<(i32, Input)>>());
     values.iter().fold((i32::MIN, 0), |acc, x| {
         if x.0 > acc.0 {
             *x
@@ -47,18 +49,21 @@ fn play_everything_and_compute(board: Board, players: Players) -> usize {
 }
 
 fn play_everything(board: Board, players: Players) -> Vec<(Board, Players)> {
-    let ret = board.get_board().iter().enumerate().fold(Vec::new(), |mut acc, (i, x)| {
+    let mut ret = Vec::new();
+    board.get_board().iter().enumerate().for_each(|(i, x)| {
         if *x == Tile::Empty {
             if pruning_heuristic(get_input(i), &board, players) {
                 let mut new_board = board.clone();
                 let mut new_players = players.clone();
                 match new_board.add_value(get_input(i), &mut new_players) {
                     Err(_) => (),
-                    _ => acc.push((new_board, new_players)),
+                    _ => {
+                        new_players.next_player();
+                        ret.push((new_board, new_players))
+                    },
                 }
             }
         }
-        acc
     });
     if ret.len() > 0 {
         ret
@@ -79,29 +84,48 @@ fn play_everything(board: Board, players: Players) -> Vec<(Board, Players)> {
     }
 } // 4.7168902s
 
-fn minimax(node: Board, depth: usize, maximizing_player: bool, alpha: &mut i32, beta: &mut i32, players: Players) -> i32 {
-    if depth == 0 { //|| node is a terminal node {
-        return close_heuristic(node, players.get_current_player().get_player_color()) // Heuristique
+fn minimax(node: Board, depth: usize, maximizing_player: bool, alpha: i32, beta: i32, players: Players, default_color: Color) -> i32 {
+    if depth == 0 || node.is_finished(players.get_current_player()).0 || players.is_finished().0 {
+        let heu = heuristic(node, players, default_color);
+        return heu// heu.to_string()
     } else if maximizing_player {
          let mut value: i32 = i32::MIN;
+         let mut new_alpha = alpha;
+         //let mut str_ret = "(".to_owned();
         for child in play_everything(node, players) {
-            value = max(value, minimax(child.0, depth - 1, false, alpha, beta, child.1));
-            if *beta < value {
-                return value
+            let ret_minimax = minimax(child.0, depth - 1, false, new_alpha, beta, child.1, default_color);
+            //str_ret = format!("{}max{},", str_ret, ret_minimax.1);
+            // println!("MAX: {} {} {}", value, ret_minimax, depth);
+            value = max(value, ret_minimax);
+            if value >= beta {
+                //str_ret.pop();
+                //str_ret = format!("{}){}", str_ret, value);
+                return value//, str_ret)
             }
-            *alpha = max(*alpha, value);
+            new_alpha = max(new_alpha, value);
         }
-        return value
-    } else { // (* minimizing player *)
+        //str_ret.pop();
+        //str_ret = format!("{}){}", str_ret, value);
+        return value//, str_ret)
+    } else {
         let mut value: i32 = i32::MAX;
+        let mut new_beta = beta;
+        //let mut str_ret = "(".to_owned();
         for child in play_everything(node, players) {
-            value = min(value, minimax(child.0, depth - 1, true, alpha, beta, child.1));
-            if *alpha >= value {
-                return value
+            let ret_minimax = minimax(child.0, depth - 1, true, alpha, new_beta, child.1, default_color);
+            //str_ret = format!("{}min{},", str_ret, ret_minimax.1);
+            // println!("MIN: {} {} {}", value, ret_minimax, depth);
+            value = min(value, ret_minimax);
+            if alpha >= value {
+                //str_ret.pop();
+                //str_ret = format!("{}){}", str_ret, value);
+                return value//, str_ret)
             }
-            *beta = min(*beta, value);
+            new_beta = min(new_beta, value);
         }
-        return value
+        //str_ret.pop();
+        //str_ret = format!("{}){}", str_ret, value);
+        return value//, str_ret)
     }
 }
 
@@ -157,4 +181,41 @@ fn pruning_heuristic(input: Input, board: &Board, players: Players) -> bool {
         }
     }
     false
+}
+
+fn heuristic(board: Board, players: Players, default_color: Color) -> i32 {
+    let me = players.get_player(default_color);
+    match players.is_finished() {
+        (true, Some(color)) => {
+            if color == default_color {
+                return i32::MAX
+            }
+                return i32::MIN
+        },
+        _ => ()
+    }
+    match board.is_finished(me) {
+        (true, Some(color)) => {
+            if color == default_color {
+                return i32::MAX
+            }
+                return i32::MIN
+        },
+        (true, _) => {
+            return 0
+        }
+        _ => ()
+    }
+    let opponent = players.get_player(default_color.get_inverse_color());
+    let mut eval = 0;
+    eval += ((me.get_player_captured().pow(2) as f64 / CAPTURED_NB.pow(2) as f64) * (i32::MAX as f64)) as i32;
+    eval -= ((opponent.get_player_captured().pow(2) as f64 / CAPTURED_NB.pow(2) as f64) * (i32::MAX as f64)) as i32;
+    eval
+    //CAPTURED_NB
+
+    // gagner / perdu capture prochain tour
+    // gagner / perdu alignement prochain tour
+    // + proche de pièces capturer = + de points 
+    // + proche de pièces capturer pour l'adv = - de points
+    // x pts * nb de free_three
 }
