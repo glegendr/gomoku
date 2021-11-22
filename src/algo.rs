@@ -10,18 +10,18 @@ pub fn get_bot_input(players: &Players, board: &Board) -> Input {
     let index = play_everything_and_compute(board.clone(), *players, players.get_current_player().get_player_color());
     //let index = minimax(board.clone(), MINMAX_DEPTH, true, i32::MIN, i32::MAX, *players, players.get_current_player().get_player_color());
     //println!("{}", index.0);
-    get_input(index)
+    board.get_input(index)
 }
 
 fn play_everything_and_compute(board: Board, players: Players, color: Color) -> usize {
     let mut handle = Vec::new();
     for (i, child) in board.get_board().iter().enumerate() {
         if *child == Tile::Empty {
-            if pruning_heuristic(get_input(i), &board, players) {
+            if pruning_heuristic(board.get_input(i), &board, players) {
                 let mut new_board = board.clone();
                 let mut new_players = players.clone();
                 handle.push(thread::spawn(move || {
-                    match new_board.add_value(get_input(i), &mut new_players) {
+                    match new_board.add_value(new_board.get_input(i), &mut new_players) {
                             Err(_) => return (i32::MIN, i),
                             _ => {
                                 new_players.next_player();
@@ -38,7 +38,7 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color) -> 
     for child in handle {
         values.push(child.join().unwrap());
     }
-    //println!("{:?}", values.iter().map(|x| (x.0, get_input(x.1))).collect::<Vec<(i32, Input)>>());
+    //println!("{:?}", values.iter().map(|x| (x.0, board.get_input(x.1))).collect::<Vec<(i32, Input)>>());
     values.iter().fold((i32::MIN, 0), |acc, x| {
         if x.0 > acc.0 {
             *x
@@ -52,10 +52,10 @@ fn play_everything(board: Board, players: Players) -> Vec<(Board, Players)> {
     let mut ret = Vec::new();
     board.get_board().iter().enumerate().for_each(|(i, x)| {
         if *x == Tile::Empty {
-            if pruning_heuristic(get_input(i), &board, players) {
+            if pruning_heuristic(board.get_input(i), &board, players) {
                 let mut new_board = board.clone();
                 let mut new_players = players.clone();
-                match new_board.add_value(get_input(i), &mut new_players) {
+                match new_board.add_value(board.get_input(i), &mut new_players) {
                     Err(_) => (),
                     _ => {
                         new_players.next_player();
@@ -76,7 +76,7 @@ fn play_everything(board: Board, players: Players) -> Vec<(Board, Players)> {
         });
         let mut new_board = board.clone();
         let mut new_players = players.clone();
-        let ret = match new_board.add_value(get_input(index), &mut new_players) {
+        let ret = match new_board.add_value(board.get_input(index), &mut new_players) {
             Err(_) => (new_board, new_players),
             _ => (new_board, new_players),
         };
@@ -135,13 +135,13 @@ fn get_distance(board: &Board, distance: i32, input: Input) -> bool {
     for y in -distance..=distance {
         if (input.1 as i32) + y < 0 {
             continue;
-        } else if (input.1 as i32) + y >= BOARD_LENGTH as i32 {
+        } else if (input.1 as i32) + y >= board.get_size() as i32 {
             break;
         }
         for x in -distance..=distance {
             if (input.0 as i32) + x < 0 || (y != -distance && y != distance && x != -distance && x != distance){
                 continue;
-            } else if (input.0 as i32) + x >= BOARD_LENGTH as i32 {
+            } else if (input.0 as i32) + x >= board.get_size() as i32 {
                 break;
             }
             if let Tile::Color(_) = board.get((((input.0 as i32) + x) as usize, ((input.1 as i32) + y) as usize)) {
@@ -159,18 +159,18 @@ fn close_heuristic(board: Board, color: Color) -> i32 {
         board.get_board().iter().enumerate().map(|(i, x)| {
             if let Tile::Color(new_color) = x {
                 if *new_color == color {
-                    let input = get_input(i);
+                    let input = board.get_input(i);
                     for distance in 1.. {
                         if get_distance(&board, distance, input) {
-                            return (((BOARD_LENGTH as i32 - 1) * 2) - (distance as i32)) as usize
+                            return (((board.get_size() as i32 - 1) * 2) - (distance as i32)) as usize
                         }
                     }
                 }
             }
-            ((BOARD_LENGTH as i32 - 1) * 2) as usize
+            ((board.get_size() as i32 - 1) * 2) as usize
         }).sum::<usize>() as i32
     } else {
-        (BOARD_LENGTH as i32 - 1) * 2
+        (board.get_size() as i32 - 1) * 2
     }
 }
 
@@ -208,10 +208,10 @@ fn heuristic(board: Board, players: Players, default_color: Color) -> i32 {
     }
     let opponent = players.get_player(default_color.get_inverse_color());
     let mut eval = 0;
-    eval += ((me.get_player_captured().pow(2) as f64 / CAPTURED_NB.pow(2) as f64) * (i32::MAX as f64)) as i32;
-    eval -= ((opponent.get_player_captured().pow(2) as f64 / CAPTURED_NB.pow(2) as f64) * (i32::MAX as f64)) as i32;
+    eval += ((me.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
+    eval -= ((opponent.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
     eval
-    //CAPTURED_NB
+    //players.get_captured_nb()
 
     // gagner / perdu capture prochain tour
     // gagner / perdu alignement prochain tour
