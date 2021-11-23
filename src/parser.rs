@@ -94,6 +94,9 @@ pub fn check_numbers(m: usize, c: usize, r: usize, a: usize) -> Result<(), FlagE
     if a > ALIGNEMENT_NB_LIMIT {
         return Err(FlagError::AlignementTooBig);
     }
+    if a < 4 {
+        return Err(FlagError::AlignementTooSmall);
+    }
     if m <= r + 1 || m < a {
         return Err(FlagError::MapTooSmall);
     }

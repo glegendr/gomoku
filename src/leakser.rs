@@ -88,8 +88,8 @@ pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize),
 
 
 fn print_helper() {
-    println!("USAGE: cargo run [OPTION] [VALUE]\n");
-    println!("VALUE is a positif real number. For more information check\nrules with \"cargo run --rules\"\n");
+    println!("USAGE: cargo run -- [OPTION] [VALUE]\n");
+    println!("VALUE is a positif real number. For more information check\nrules with \"cargo run -- --rules\"\n");
     println!("OPTIONS:");
     println!("\t-m, --map\t\tsize of gomoku\'s board");
     println!("\t-c, --captured\t\tnumber of stone to capture to win");
