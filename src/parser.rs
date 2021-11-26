@@ -32,7 +32,7 @@ pub fn check_args(flags: &[String]) -> bool {
 
 fn check_flag_exist(flag: &str) -> bool {
     let lst_flags: Vec<&str> = vec![
-        "-m", "--map",
+        "-s", "--size",
         "-c", "--captured",
         "-r", "--range",
         "-a", "--alignement"
@@ -94,7 +94,7 @@ pub fn check_numbers(m: usize, c: usize, r: usize, a: usize) -> Result<(), FlagE
     if a > ALIGNEMENT_NB_LIMIT {
         return Err(FlagError::AlignementTooBig);
     }
-    if a < 4 {
+    if a < 4 && m > 3 {
         return Err(FlagError::AlignementTooSmall);
     }
     if m <= r + 1 || m < a {

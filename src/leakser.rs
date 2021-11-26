@@ -71,7 +71,7 @@ pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize),
             return Err(FlagError::WrongFlag)
         }
     }
-    let board_length = get_flag(flags, "-m", "--map", BOARD_LENGTH);
+    let board_length = get_flag(flags, "-s", "--size", BOARD_LENGTH);
     let captured_nb = get_flag(flags, "-c", "--captured", CAPTURED_NB);
     let capture_range = get_flag(flags, "-r", "--range", CAPTURE_RANGE);
     let alignement_nb = get_flag(flags, "-a", "--alignement", ALIGNEMENT_NB);
@@ -91,12 +91,12 @@ fn print_helper() {
     println!("USAGE: cargo run -- [OPTION] [VALUE]\n");
     println!("VALUE is a positif real number. For more information check\nrules with \"cargo run -- --rules\"\n");
     println!("OPTIONS:");
-    println!("\t-m, --map\t\tsize of gomoku\'s board");
-    println!("\t-c, --captured\t\tnumber of stone to capture to win");
-    println!("\t-r, --range range\trange used for capture opponent\'s stone");
+    println!("\t-s, --size\t\tsize of gomoku\'s board");
+    println!("\t-c, --captured\t\tnumber of stones to capture to win");
+    println!("\t-r, --range\t\trange used for capture opponent\'s stones");
     println!("\t-a, --alignement\tnumber of stones to align for win");
-    println!("\t    --rules\t\tprint gomoku\'s rules");
-    println!("\t-h, --help\t\tprint help information");
+    println!("\t    --rules\t\tdisplay gomoku\'s rules");
+    println!("\t-h, --help\t\tdisplay help information");
 }
 
 

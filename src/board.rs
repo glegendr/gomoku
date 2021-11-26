@@ -286,7 +286,9 @@ impl Board {
         } else if self.check_double_free_three(input, color) {
             return Err(PlacementError::DoubleFreeThree)
         }
-        self.capture(input, players);
+        if self.get_capture_range() != 0 {
+            self.capture(input, players);
+        }
         self.replace(input, Tile::Color(color));
         Ok(())
     }
@@ -311,26 +313,27 @@ impl Board {
     }
 
     fn check_victory(&self, i: usize, color: Color, tile: &Tile, captured: bool) -> (bool, Option<Color>) {
+        let is_capture_disabled: bool = self.get_capture_range() == 0;
         if  i % self.get_size() <= self.get_size() - self.get_alignement_nb() &&
             self.board[i..i + self.get_alignement_nb()].iter().all(|x| *x == *tile) &&
-            (!captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 + y) as usize, |x, _| x)) {
+            (is_capture_disabled || (!captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 + y) as usize, |x, _| x))) {
             return (true, Some(color))
         }
         if  i / self.get_size() <= self.get_size() - self.get_alignement_nb() &&
             self.slice(i, self.get_alignement_nb(), |start, _| start, |_, x| x).iter().all(|x| *x == *tile) &&
-            (!captured || cannot_be_captured(self, self.get_input(i), color, |x, _| x , |x, y| (x as i32 + y) as usize)) {
+            (is_capture_disabled || (!captured || cannot_be_captured(self, self.get_input(i), color, |x, _| x , |x, y| (x as i32 + y) as usize))) {
             return (true, Some(color))
         }
         if  i / self.get_size() <= self.get_size() - self.get_alignement_nb() &&
             i % self.get_size() <= self.get_size() - self.get_alignement_nb() &&
             self.slice(i, self.get_alignement_nb(), |start, x| start + x, |_, x| x).iter().all(|x| *x == *tile) &&
-            (!captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize)) {
+            (is_capture_disabled || (!captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize))) {
             return (true, Some(color))
         }
         if  i / self.get_size() <= self.get_size() - self.get_alignement_nb() &&
             i % self.get_size() >= self.get_alignement_nb() - 1 &&
             self.slice(i, self.get_alignement_nb(), |start, x| start - x, |_, x| x).iter().all(|x| *x == *tile) &&
-            (!captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize)) {
+            (is_capture_disabled || (!captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize))) {
             return (true, Some(color))
         }
         (false, None)
@@ -415,6 +418,9 @@ fn cannot_be_captured_prime(
             break;
         }
         vec.push(tile);
+    }
+    if vec.len() < 2 {
+        return false
     }
     let mut sorted = vec![vec.pop().unwrap(), *vec.get(0).unwrap()];
     sorted.sort();

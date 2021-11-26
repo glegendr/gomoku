@@ -40,7 +40,7 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color) -> 
     }
     //println!("{:?}", values.iter().map(|x| (x.0, board.get_input(x.1))).collect::<Vec<(i32, Input)>>());
     values.iter().fold((i32::MIN, 0), |acc, x| {
-        if x.0 > acc.0 {
+        if x.0 >= acc.0 {
             *x
         } else {
             acc
