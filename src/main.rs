@@ -12,6 +12,8 @@ use algo::{get_bot_input};
 mod leakser;
 use leakser::{leakser};
 mod parser;
+mod heuristic;
+// use heuristic::*;
 
 fn get_human_input(_player_color: Color) -> Input {
     let mut guess = String::new();
@@ -76,4 +78,9 @@ fn main() {
         println!("{}", board);
         println!("{:?}", players);
     }
+    // board.add_value((3, 3), &mut players);
+    // board.add_value((4, 3), &mut players);
+    // board.add_value((3, 4), &mut players);
+    // board.add_value((4, 4), &mut players);
+    // iter_on_board(&board, Mode::Diagonose, Color::Black);
 }

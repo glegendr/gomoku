@@ -1,10 +1,11 @@
 use crate::board::*;
 use crate::players::*;
 use crate::color::*;
+use crate::heuristic::*;
 use std::cmp::{min, max};
 use std::thread;
 
-const MINMAX_DEPTH: usize = 4;
+const MINMAX_DEPTH: usize = 5;
 
 pub fn get_bot_input(players: &Players, board: &Board) -> Input {
     let index = play_everything_and_compute(board.clone(), *players, players.get_current_player().get_player_color());
@@ -17,7 +18,7 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color) -> 
     let mut handle = Vec::new();
     for (i, child) in board.get_board().iter().enumerate() {
         if *child == Tile::Empty {
-            if pruning_heuristic(board.get_input(i), &board, players) {
+            if pruning_heuristic(board.get_input(i), &board) {
                 let mut new_board = board.clone();
                 let mut new_players = players.clone();
                 handle.push(thread::spawn(move || {
@@ -52,7 +53,7 @@ fn play_everything(board: Board, players: Players) -> Vec<(Board, Players)> {
     let mut ret = Vec::new();
     board.get_board().iter().enumerate().for_each(|(i, x)| {
         if *x == Tile::Empty {
-            if pruning_heuristic(board.get_input(i), &board, players) {
+            if pruning_heuristic(board.get_input(i), &board) {
                 let mut new_board = board.clone();
                 let mut new_players = players.clone();
                 match new_board.add_value(board.get_input(i), &mut new_players) {
@@ -127,95 +128,4 @@ fn minimax(node: Board, depth: usize, maximizing_player: bool, alpha: i32, beta:
         //str_ret = format!("{}){}", str_ret, value);
         return value//, str_ret)
     }
-}
-
-/* HEURISTICS */
-
-fn get_distance(board: &Board, distance: i32, input: Input) -> bool {
-    for y in -distance..=distance {
-        if (input.1 as i32) + y < 0 {
-            continue;
-        } else if (input.1 as i32) + y >= board.get_size() as i32 {
-            break;
-        }
-        for x in -distance..=distance {
-            if (input.0 as i32) + x < 0 || (y != -distance && y != distance && x != -distance && x != distance){
-                continue;
-            } else if (input.0 as i32) + x >= board.get_size() as i32 {
-                break;
-            }
-            if let Tile::Color(_) = board.get((((input.0 as i32) + x) as usize, ((input.1 as i32) + y) as usize)) {
-                return true
-            }
-            
-        }
-
-    }
-    false
-}
-
-fn close_heuristic(board: Board, color: Color) -> i32 {
-    if board.get_board().iter().any(|x| *x == Tile::Color(color.get_inverse_color())) {
-        board.get_board().iter().enumerate().map(|(i, x)| {
-            if let Tile::Color(new_color) = x {
-                if *new_color == color {
-                    let input = board.get_input(i);
-                    for distance in 1.. {
-                        if get_distance(&board, distance, input) {
-                            return (((board.get_size() as i32 - 1) * 2) - (distance as i32)) as usize
-                        }
-                    }
-                }
-            }
-            ((board.get_size() as i32 - 1) * 2) as usize
-        }).sum::<usize>() as i32
-    } else {
-        (board.get_size() as i32 - 1) * 2
-    }
-}
-
-fn pruning_heuristic(input: Input, board: &Board, players: Players) -> bool {
-    for distance in 1..=1 {
-        if get_distance(board, distance, input) {
-            return true
-        }
-    }
-    false
-}
-
-fn heuristic(board: Board, players: Players, default_color: Color) -> i32 {
-    let me = players.get_player(default_color);
-    match players.is_finished() {
-        (true, Some(color)) => {
-            if color == default_color {
-                return i32::MAX
-            }
-                return i32::MIN
-        },
-        _ => ()
-    }
-    match board.is_finished(me) {
-        (true, Some(color)) => {
-            if color == default_color {
-                return i32::MAX
-            }
-                return i32::MIN
-        },
-        (true, _) => {
-            return 0
-        }
-        _ => ()
-    }
-    let opponent = players.get_player(default_color.get_inverse_color());
-    let mut eval = 0;
-    eval += ((me.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
-    eval -= ((opponent.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
-    eval
-    //players.get_captured_nb()
-
-    // gagner / perdu capture prochain tour
-    // gagner / perdu alignement prochain tour
-    // + proche de pièces capturer = + de points 
-    // + proche de pièces capturer pour l'adv = - de points
-    // x pts * nb de free_three
 }
