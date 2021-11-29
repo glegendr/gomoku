@@ -148,7 +148,7 @@ fn sub(x: usize, y: i32) -> usize {
     if y > (x as i32) {
         return usize::MAX
     }
-    x - (y as usize)
+    ((x as i32) - y) as usize
 }
 
 fn skip(x: usize, _:i32) -> usize {

@@ -18,7 +18,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 const BENCHMARK_SIZE: usize = 19;
 const BENCHMARK_TOTAL_TILES: usize = BENCHMARK_SIZE * BENCHMARK_SIZE;
 const ALIGNEMENT_NB: usize = 5;
-const CAPTURE_RANGE: usize = 3;
+const CAPTURE_RANGE: usize = 2;
 const CAPTURE_NB: usize = 10;
 
 
