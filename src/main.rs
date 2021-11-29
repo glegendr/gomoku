@@ -1,6 +1,6 @@
 use std::{io, time, env, process};
 mod board;
-use board::{Board, Input};
+use board::{Board, Input, Tile};
 mod error;
 use error::{FlagError};
 mod color;
@@ -14,6 +14,17 @@ use leakser::{leakser};
 mod parser;
 mod heuristic;
 // use heuristic::*;
+//
+
+extern crate piston;
+extern crate glutin_window;
+extern crate graphics;
+extern crate opengl_graphics;
+
+use piston::*;
+use glutin_window::GlutinWindow;
+use opengl_graphics::{OpenGL, GlGraphics};
+use graphics::{clear, Rectangle, Line};
 
 fn get_human_input(_player_color: Color) -> Input {
     let mut guess = String::new();
@@ -47,7 +58,43 @@ fn main() {
             process::exit(1);
         }
     };
-    loop {
+
+    let opengl = OpenGL::V3_2;
+    let settings = WindowSettings::new("Gomoku", [1000, 1000])
+        .graphics_api(opengl)
+        .exit_on_esc(true);
+    let mut window: GlutinWindow = settings.build()
+        .expect("Could not create window");
+    let mut events = Events::new(EventSettings::new().lazy(true));
+    let mut gl = GlGraphics::new(opengl);
+
+    let mut x: f64 = 0.0;
+    let mut y: f64 = 0.0;
+    let mut true_x: f64 = 0.0;
+    let mut true_y: f64 = 0.0;
+    while let Some(event) = events.next(&mut window) {
+        if let Some(pos) = event.mouse_cursor_args() {
+            x = pos[0];
+            y = pos[1];
+        }
+        if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
+            println!("LEFT CLICK!!");
+            true_x = x;
+            true_y = y;
+            println!("{} - {}", true_x, true_y);
+        }
+        if let Some(args) = event.render_args() {
+            gl.draw(args.viewport(), |context, graphics| {
+                clear([0.35, 0.18, 0.0, 1.0], graphics);
+                for i in 0..board.get_size() {
+                    Line::new([0.0, 0.0, 0.0, 1.0], 2.0)
+                        .draw([(i as f64) * 1000.0 / (board.get_size() as f64), 0.0, (i as f64) * 1000.0 / (board.get_size() as f64), 1000.0], &context.draw_state, context.transform, graphics);
+                }
+                for i in 0..board.get_size() {
+                    Line::new([0.0, 0.0, 0.0, 1.0], 2.0)
+                        .draw([0.0, (i as f64) * 1000.0 / (board.get_size() as f64), 1000.0, (i as f64) * 1000.0 / (board.get_size() as f64)], &context.draw_state, context.transform, graphics);
+                }
+        /*
         match (board.is_finished(players.get_current_player()), players.is_finished()) {
             (_, (true, Some(color))) => {
                 println!("BRAVO {:?} \"{}\"", color, color);
@@ -62,8 +109,8 @@ fn main() {
                 break;
             },
             _ => ()
-
         };
+        */
         let now = time::Instant::now();
         let input = match players.get_current_player().get_player_type() {
             PlayerType::Human => get_human_input(players.get_current_player().get_player_color()),
@@ -75,8 +122,19 @@ fn main() {
             Ok(_) => players.next_player(),
             Err(e) => println!("{}", e)
         };
+        for (i, stone)  in board.get_board().iter().enumerate() {
+            if *stone == Tile::Color(Color::White) {
+                Rectangle::new([1.0, 1.0, 1.0, 1.0])
+                    .draw([(board.get_input(i).0 * board.get_size() + 4) as f64, (board.get_input(i).1 * board.get_size() + 4) as f64, (board.get_size() - 8) as f64, (board.get_size() - 9) as f64], &context.draw_state, context.transform, graphics);
+            } else if *stone == Tile::Color(Color::Black) {
+                Rectangle::new([0.0, 0.0, 0.0, 1.0])
+                    .draw([(board.get_input(i).0 + 4) as f64, (board.get_input(i).1 + 4) as f64, (board.get_size() - 8) as f64, (board.get_size() - 9) as f64], &context.draw_state, context.transform, graphics);
+            } 
+        }
         println!("{}", board);
         println!("{:?}", players);
+            });
+        }
     }
     // board.add_value((3, 3), &mut players);
     // board.add_value((4, 3), &mut players);
