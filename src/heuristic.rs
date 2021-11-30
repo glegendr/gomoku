@@ -101,7 +101,7 @@ impl Coordinates {
     }
 }
 
-fn get_cases(raw_board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color, current_player_color: Color) -> (i32, usize) {
+fn get_cases(raw_board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color, _current_player_color: Color) -> (i32, usize) {
     match webbbew(raw_board, f_x, f_y, coordinates, color) {
         Some(score) => return (score, 3),
         None => ()
@@ -249,10 +249,12 @@ fn get_cases(raw_board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32
         (0, 1)
 }
 
+#[inline]
 fn add(x: usize, y: i32) -> usize {
     (x as i32 + y) as usize
 }
 
+#[inline]
 fn sub(x: usize, y: i32) -> usize {
     if y > (x as i32) {
         return usize::MAX
@@ -260,6 +262,7 @@ fn sub(x: usize, y: i32) -> usize {
     ((x as i32) - y) as usize
 }
 
+#[inline]
 fn skip(x: usize, _:i32) -> usize {
     x
 }
@@ -276,7 +279,6 @@ pub fn iter_on_board(raw_board: &Board, mode: Mode, color: Color, current_player
     let mut i: usize = 0;
     let mut coordinates = Coordinates::new(raw_board.get_size(), start, mode);
     while i < raw_board.get_total_tiles() {
-        // println!("{:?}", coordinates);
         if board[coordinates.to_index()] == Tile::Empty {
             coordinates.drift(f_x, f_y, 1);
             i += 1;

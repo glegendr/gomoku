@@ -73,28 +73,27 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
     let mut handle:Vec<thread::JoinHandle<(i32, usize, Option<Tree>)>> = Vec::new();
     if calculated_tree.is_some() {
         if let Some(tree) = calculated_tree.unwrap().find((&board, &players)) {
-            tree.children.iter().for_each(|x| {
-                let mut new_tree = x.clone();
-                println!("BEF: Tree[{}] {}", new_tree.input, new_tree._leaves());
-                handle.push(thread::spawn(move || {
-                    let score = minimax(1, false, i32::MIN, i32::MAX, color, &mut new_tree);
-                    println!("AFT: Tree[{}] {}", new_tree.input, new_tree._leaves());
-                return (score, new_tree.input, Some(new_tree))
-                }));
-            });
-            /**/
-            let mut values = Vec::new();
-            for child in handle {
-                values.push(child.join().unwrap());
-            }
-            let ret = values.iter().fold((i32::MIN, 0, None), |acc, x| {
-                if x.0 >= acc.0 {
-                    (*x).clone()
-                } else {
-                    acc
+            if tree.children.len() > 0 {
+                tree.children.iter().for_each(|x| {
+                    let mut new_tree = x.clone();
+                    handle.push(thread::spawn(move || {
+                        let score = minimax(1, false, i32::MIN, i32::MAX, color, &mut new_tree);
+                    return (score, new_tree.input, Some(new_tree))
+                    }));
+                });
+                let mut values = Vec::new();
+                for child in handle {
+                    values.push(child.join().unwrap());
                 }
-            });
-            return (ret.1, ret.2)
+                let ret = values.iter().fold((i32::MIN, 0, None), |acc, x| {
+                    if x.0 >= acc.0 {
+                        (*x).clone()
+                    } else {
+                        acc
+                    }
+                });
+                return (ret.1, ret.2)
+            }
         }
     }
     for (i, child) in board.get_board().iter().enumerate() {
