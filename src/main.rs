@@ -15,6 +15,8 @@ mod parser;
 mod heuristic;
 // use heuristic::*;
 //
+mod view;
+use view::{View};
 
 extern crate piston;
 extern crate glutin_window;
@@ -24,7 +26,7 @@ extern crate opengl_graphics;
 use piston::*;
 use glutin_window::GlutinWindow;
 use opengl_graphics::{OpenGL, GlGraphics};
-use graphics::{clear, Rectangle, Line};
+use graphics::{clear};
 
 fn get_human_input(_player_color: Color) -> Input {
     let mut guess = String::new();
@@ -37,6 +39,37 @@ fn get_human_input(_player_color: Color) -> Input {
         .map(|x| x.parse::<i32>().unwrap())
         .collect();
     (vec[0] as usize, vec[1] as usize)
+}
+
+fn game(board: &mut Board, players: &mut Players) {
+    /*
+    match (board.is_finished(players.get_current_player()), players.is_finished()) {
+        (_, (true, Some(color))) => {
+            println!("BRAVO {:?} \"{}\"", color, color);
+            break;
+        },
+        ((true, None), _) => {
+            println!("DRAW !");
+            break;
+        },
+        ((true, Some(color)), _) => {
+            println!("BRAVO {:?} \"{}\"", color, color);
+            break;
+        },
+        _ => ()
+    };
+    */
+    let now = time::Instant::now();
+    let input = match players.get_current_player().get_player_type() {
+        PlayerType::Human => get_human_input(players.get_current_player().get_player_color()),
+        PlayerType::Bot => get_bot_input(&players, &board),
+    };
+    let elapsed_time = now.elapsed();
+    println!("Input took {:?}.", elapsed_time);
+    match board.add_value(input, players) {
+        Ok(_) => players.next_player(),
+        Err(e) => println!("{}", e)
+    };
 }
 
 fn main() {
@@ -67,74 +100,19 @@ fn main() {
         .expect("Could not create window");
     let mut events = Events::new(EventSettings::new().lazy(true));
     let mut gl = GlGraphics::new(opengl);
+    let view = View::new(&board);
 
-    let mut x: f64 = 0.0;
-    let mut y: f64 = 0.0;
-    let mut true_x: f64 = 0.0;
-    let mut true_y: f64 = 0.0;
     while let Some(event) = events.next(&mut window) {
-        if let Some(pos) = event.mouse_cursor_args() {
-            x = pos[0];
-            y = pos[1];
-        }
-        if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
-            println!("LEFT CLICK!!");
-            true_x = x;
-            true_y = y;
-            println!("{} - {}", true_x, true_y);
-        }
+        //EVENT
         if let Some(args) = event.render_args() {
             gl.draw(args.viewport(), |context, graphics| {
                 clear([0.35, 0.18, 0.0, 1.0], graphics);
-                for i in 0..board.get_size() {
-                    Line::new([0.0, 0.0, 0.0, 1.0], 2.0)
-                        .draw([(i as f64) * 1000.0 / (board.get_size() as f64), 0.0, (i as f64) * 1000.0 / (board.get_size() as f64), 1000.0], &context.draw_state, context.transform, graphics);
-                }
-                for i in 0..board.get_size() {
-                    Line::new([0.0, 0.0, 0.0, 1.0], 2.0)
-                        .draw([0.0, (i as f64) * 1000.0 / (board.get_size() as f64), 1000.0, (i as f64) * 1000.0 / (board.get_size() as f64)], &context.draw_state, context.transform, graphics);
-                }
-        /*
-        match (board.is_finished(players.get_current_player()), players.is_finished()) {
-            (_, (true, Some(color))) => {
-                println!("BRAVO {:?} \"{}\"", color, color);
-                break;
-            },
-            ((true, None), _) => {
-                println!("DRAW !");
-                break;
-            },
-            ((true, Some(color)), _) => {
-                println!("BRAVO {:?} \"{}\"", color, color);
-                break;
-            },
-            _ => ()
-        };
-        */
-        let now = time::Instant::now();
-        let input = match players.get_current_player().get_player_type() {
-            PlayerType::Human => get_human_input(players.get_current_player().get_player_color()),
-            PlayerType::Bot => get_bot_input(&players, &board),
-        };
-        let elapsed_time = now.elapsed();
-        println!("Input took {:?}.", elapsed_time);
-        match board.add_value(input, &mut players) {
-            Ok(_) => players.next_player(),
-            Err(e) => println!("{}", e)
-        };
-        for (i, stone)  in board.get_board().iter().enumerate() {
-            if *stone == Tile::Color(Color::White) {
-                Rectangle::new([1.0, 1.0, 1.0, 1.0])
-                    .draw([(board.get_input(i).0 * board.get_size() + 4) as f64, (board.get_input(i).1 * board.get_size() + 4) as f64, (board.get_size() - 8) as f64, (board.get_size() - 9) as f64], &context.draw_state, context.transform, graphics);
-            } else if *stone == Tile::Color(Color::Black) {
-                Rectangle::new([0.0, 0.0, 0.0, 1.0])
-                    .draw([(board.get_input(i).0 + 4) as f64, (board.get_input(i).1 + 4) as f64, (board.get_size() - 8) as f64, (board.get_size() - 9) as f64], &context.draw_state, context.transform, graphics);
-            } 
-        }
-        println!("{}", board);
-        println!("{:?}", players);
+                game(&mut board, &mut players);
+                view.draw(&board, &context, graphics)
+                //DRAW
             });
         }
+            println!("{}", board);
     }
     // board.add_value((3, 3), &mut players);
     // board.add_value((4, 3), &mut players);
