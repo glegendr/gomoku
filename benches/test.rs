@@ -35,7 +35,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let _ = board.add_value(board.get_input(0), &mut players);
         b.iter(|| {
             let new_players = players.clone();
-            get_bot_input(&new_players, &board);
+            get_bot_input(&new_players, &board, None);
         });
     });
 
@@ -47,7 +47,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2), &mut players);
         b.iter(|| {
             let new_players = players.clone();
-            get_bot_input(&new_players, &board);
+            get_bot_input(&new_players, &board, None);
         });
     });
 
@@ -59,7 +59,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES - 1), &mut players);
         b.iter(|| {
             let new_players = players.clone();
-            get_bot_input(&new_players, &board);
+            get_bot_input(&new_players, &board, None);
         });
     });
 
@@ -73,7 +73,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2 - 1), &mut players);
         b.iter(|| {
             let new_players = players.clone();
-            get_bot_input(&new_players, &board);
+            get_bot_input(&new_players, &board, None);
         });
     });
 
@@ -90,7 +90,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2 - 1 + BENCHMARK_SIZE), &mut players);
         b.iter(|| {
             let new_players = players.clone();
-            get_bot_input(&new_players, &board);
+            get_bot_input(&new_players, &board, None);
         });
     });
 

@@ -101,127 +101,151 @@ impl Coordinates {
     }
 }
 
-fn get_cases(raw_board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color, current_player_color: Color) -> (i32, usize) { // ebbbbe
-    match bbbbb(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-150000, 4), 
-        1 => return (150000, 4),
-        _ => (), 
-    }
-    match ebbbbe(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-100000, 4), 
-        1 => return (100000, 4),
-        _ => (), 
-    }
-    match ebbbbw(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-80000, 4), 
-        1 => return (80000, 4),
-        _ => (), 
-    }
-    match ebebbbe(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-80000, 5), 
-        1 => return (80000, 5),
-        _ => (), 
-    }
-    match ebbebbe(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-75000, 5), 
-        1 => return (75000, 5),
-        _ => (), 
-    }
-    match ebbbe(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-50000, 3), 
-        1 => return (50000, 3),
-        _ => (), 
-    }
-    match ebebbe(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-45000, 3), 
-        1 => return (45000, 3),
-        _ => (), 
-    }
-    match ebbbw(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-35000, 3), 
-        1 => return (35000, 3),
-        _ => (), 
-    }
-    match wbbebe(raw_board, f_x, f_y, coordinates, color) {
-        -1 => {
-            if color == current_player_color {
-                return (-15000, 4)
-            }
-            return (-30000, 4)
-        }, 
-        1 => {
-            if color == current_player_color {
-                return (30000, 4)
-            }
-            return (15000, 4)
-        },
-        _ => (), 
-    }
-    match ebbebw(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-20000, 4), 
-        1 => return (20000, 4),
-        _ => (), 
-    }
-    match ebeebbe(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-25000, 5), 
-        1 => return (25000, 5),
-        _ => (), 
-    }
-    match ebebebe(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-20000, 5), 
-        1 => return (20000, 5), 
-        _ => (), 
-    }
+fn get_cases(raw_board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color, current_player_color: Color) -> (i32, usize) {
     match webbbew(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-15000, 4), 
-        1 => return (15000, 4), 
-        _ => (), 
+        Some(score) => return (score, 3),
+        None => ()
     }
-    match ebeeebe(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-7500, 5), 
-        1 => return (7500, 5), 
-        _ => (), 
+    match bbbbb(raw_board, f_x, f_y, coordinates, color) {
+        Some(score) => return (score, 5),
+        None => ()
     }
-    match ebebe(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-7500, 3), 
-        1 => return (7500, 3), 
-        _ => (), 
+    match get_cases_size_5(raw_board, f_x, f_y, coordinates, color) {
+        Some(score) => return (score, 5),
+        None => ()
     }
-    match ebeebe(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-7500, 4), 
-        1 => return (7500, 4), 
-        _ => (), 
+    match get_cases_size_4(raw_board, f_x, f_y, coordinates, color) {
+        Some(score) => return (score, 4),
+        None => ()
     }
-    match ebbw(raw_board, f_x, f_y, coordinates, color) { // define Who play to get score
-        -1 => {
-            if color == current_player_color {
-                return (10000, 2)
-            }
-            return (-10000, 2)
-        },
-        1 => {
-            if color == current_player_color {
-                return (5000, 2)
-            }
-            return (-10000, 2)
-        },
-        _ => (), 
+    match get_cases_size_3(raw_board, f_x, f_y, coordinates, color) {
+        Some(score) => return (score, 3),
+        None => ()
     }
-    match ebebw(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-10000, 3), 
-        1 => return (10000, 3), 
-        _ => (), 
+    match get_cases_size_2(raw_board, f_x, f_y, coordinates, color) {
+        Some(score) => return (score, 2),
+        None => ()
     }
-    match ebeebw(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-5000, 4), 
-        1 => return (5000, 4), 
-        _ => (), 
-    }
-    match two_in_a_row(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-10000, 2), 
-        1 => return (10000, 2), 
-        _ => (), 
-    };
+    // match bbbbb(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-150000, 4), 
+    //     1 => return (150000, 4),
+    //     _ => (), 
+    // }
+    // match ebbbbe(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-100000, 4), 
+    //     1 => return (100000, 4),
+    //     _ => (), 
+    // }
+    // match ebbbbw(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-80000, 4), 
+    //     1 => return (80000, 4),
+    //     _ => (), 
+    // }
+    // match ebebbbe(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-80000, 5), 
+    //     1 => return (80000, 5),
+    //     _ => (), 
+    // }
+    // match ebbebbe(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-75000, 5), 
+    //     1 => return (75000, 5),
+    //     _ => (), 
+    // }
+    // match ebbbe(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-50000, 3), 
+    //     1 => return (50000, 3),
+    //     _ => (), 
+    // }
+    // match ebebbe(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-45000, 4), 
+    //     1 => return (45000, 4),
+    //     _ => (), 
+    // }
+    // match ebbbw(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-35000, 3), 
+    //     1 => return (35000, 3),
+    //     _ => (), 
+    // }
+    // match wbbebe(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => {
+    //         if color == current_player_color {
+    //             return (-15000, 4)
+    //         }
+    //         return (-30000, 4)
+    //     }, 
+    //     1 => {
+    //         if color == current_player_color {
+    //             return (30000, 4)
+    //         }
+    //         return (15000, 4)
+    //     },
+    //     _ => (), 
+    // }
+    // match ebbebw(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-20000, 4), 
+    //     1 => return (20000, 4),
+    //     _ => (), 
+    // }
+    // match ebeebbe(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-25000, 5), 
+    //     1 => return (25000, 5),
+    //     _ => (), 
+    // }
+    // match ebebebe(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-20000, 5), 
+    //     1 => return (20000, 5), 
+    //     _ => (), 
+    // }
+    // match webbbew(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-15000, 4), 
+    //     1 => return (15000, 4), 
+    //     _ => (), 
+    // }
+    // match ebeeebe(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-7500, 5), 
+    //     1 => return (7500, 5), 
+    //     _ => (), 
+    // }
+    // match ebebe(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-7500, 3), 
+    //     1 => return (7500, 3), 
+    //     _ => (), 
+    // }
+    // match ebeebe(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-7500, 4), 
+    //     1 => return (7500, 4), 
+    //     _ => (), 
+    // }
+    // match ebbw(raw_board, f_x, f_y, coordinates, color) { // define Who play to get score
+    //     -1 => {
+    //         if color == current_player_color {
+    //             return (10000, 2)
+    //         }
+    //         return (-10000, 2)
+    //     },
+    //     1 => {
+    //         if color == current_player_color {
+    //             return (5000, 2)
+    //         }
+    //         return (-10000, 2)
+    //     },
+    //     _ => (), 
+    // }
+    // match ebebw(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-10000, 3), 
+    //     1 => return (10000, 3), 
+    //     _ => (), 
+    // }
+    // match ebeebw(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-5000, 4), 
+    //     1 => return (5000, 4), 
+    //     _ => (), 
+    // }
+    // match two_in_a_row(raw_board, f_x, f_y, coordinates, color) {
+    //     -1 => return (-10000, 2), 
+    //     1 => return (10000, 2), 
+    //     _ => (), 
+    // };
         (0, 1)
 }
 
