@@ -8,12 +8,12 @@ use color::{Color};
 mod players;
 use players::*;
 mod algo;
-use algo::{get_bot_input};
+use algo::{get_bot_input, Tree};
 mod leakser;
 use leakser::{leakser};
 mod parser;
 mod heuristic;
-// use heuristic::*;
+mod matching_cases;
 
 fn get_human_input(_player_color: Color) -> Input {
     let mut guess = String::new();
@@ -33,6 +33,8 @@ fn main() {
     let mut board: Board;
     let player1 = Player::new(Color::Black, PlayerType::Human);
     let player2 = Player::new(Color::White, PlayerType::Bot);
+    let mut tree_player_1: Option<Tree> = None;
+    let mut tree_player_2: Option<Tree> = None;
     let mut players: Players;
     match leakser(&mut args[1..]) {
         Ok((m, c, r, a)) => {
@@ -67,7 +69,20 @@ fn main() {
         let now = time::Instant::now();
         let input = match players.get_current_player().get_player_type() {
             PlayerType::Human => get_human_input(players.get_current_player().get_player_color()),
-            PlayerType::Bot => get_bot_input(&players, &board),
+            PlayerType::Bot => {
+                match players.get_current_player().get_player_color() {
+                    Color::Black => {
+                        let (bot_input, bot_tree) = get_bot_input(&players, &board, tree_player_1);
+                        tree_player_1 = bot_tree;
+                        bot_input
+                    },
+                    Color::White => {
+                        let (bot_input, bot_tree) = get_bot_input(&players, &board, tree_player_2);
+                        tree_player_2 = bot_tree;
+                        bot_input
+                    },
+                }
+            },
         };
         let elapsed_time = now.elapsed();
         println!("Input took {:?}.", elapsed_time);
@@ -76,11 +91,6 @@ fn main() {
             Err(e) => println!("{}", e)
         };
         println!("{}", board);
-        println!("{:?}", players);
+        println!("{}", players);
     }
-    // board.add_value((3, 3), &mut players);
-    // board.add_value((4, 3), &mut players);
-    // board.add_value((3, 4), &mut players);
-    // board.add_value((4, 4), &mut players);
-    // iter_on_board(&board, Mode::Diagonose, Color::Black);
 }

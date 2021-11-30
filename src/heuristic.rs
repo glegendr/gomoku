@@ -1,11 +1,12 @@
 use crate::board::*;
 use crate::players::*;
 use crate::color::*;
+use crate::matching_cases::*;
 
 #[derive(Debug)]
-struct Coordinates {
-    x: usize,
-    y: usize,
+pub struct Coordinates {
+    pub x: usize,
+    pub y: usize,
     size: usize,
     start: Input,
     mode: ((usize, i32), (usize, i32))
@@ -100,43 +101,127 @@ impl Coordinates {
     }
 }
 
-/* .XX. */
-fn two_in_a_row(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> i32 {
-    let size = board.get_size();
-    if f_x(coordinates.x, -1) >= size || f_x(coordinates.x, 2) >= size || f_y(coordinates.y, -1) >= size || f_y(coordinates.y, 2) >= size {
-        return 0
-    }
-    match (
-        color,
-        board.get((f_x(coordinates.x, -1), f_y(coordinates.y, -1))), 
-        board.get((coordinates.x, coordinates.y)),
-        board.get((f_x(coordinates.x, 1), f_y(coordinates.y, 1))),
-        board.get((f_x(coordinates.x, 2), f_y(coordinates.y, 2)))
-    ) {
-        (x, Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty) => {
-            if x == Color::Black {
-                1
-            } else {
-                -1
-            }
-        },
-        (x, Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty) => {
-            if x == Color::Black {
-                -1
-            } else {
-                1
-            }
-        },
-        _ => 0
-    }
-}
-
-fn get_cases(raw_board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> (i32, usize) {
-    match two_in_a_row(raw_board, f_x, f_y, coordinates, color) {
-        -1 => return (-10, 2), 
-        1 => return (10, 2), 
+fn get_cases(raw_board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color, current_player_color: Color) -> (i32, usize) { // ebbbbe
+    match bbbbb(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-150000, 4), 
+        1 => return (150000, 4),
         _ => (), 
     }
+    match ebbbbe(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-100000, 4), 
+        1 => return (100000, 4),
+        _ => (), 
+    }
+    match ebbbbw(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-80000, 4), 
+        1 => return (80000, 4),
+        _ => (), 
+    }
+    match ebebbbe(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-80000, 5), 
+        1 => return (80000, 5),
+        _ => (), 
+    }
+    match ebbebbe(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-75000, 5), 
+        1 => return (75000, 5),
+        _ => (), 
+    }
+    match ebbbe(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-50000, 3), 
+        1 => return (50000, 3),
+        _ => (), 
+    }
+    match ebebbe(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-45000, 3), 
+        1 => return (45000, 3),
+        _ => (), 
+    }
+    match ebbbw(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-35000, 3), 
+        1 => return (35000, 3),
+        _ => (), 
+    }
+    match wbbebe(raw_board, f_x, f_y, coordinates, color) {
+        -1 => {
+            if color == current_player_color {
+                return (-15000, 4)
+            }
+            return (-30000, 4)
+        }, 
+        1 => {
+            if color == current_player_color {
+                return (30000, 4)
+            }
+            return (15000, 4)
+        },
+        _ => (), 
+    }
+    match ebbebw(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-20000, 4), 
+        1 => return (20000, 4),
+        _ => (), 
+    }
+    match ebeebbe(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-25000, 5), 
+        1 => return (25000, 5),
+        _ => (), 
+    }
+    match ebebebe(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-20000, 5), 
+        1 => return (20000, 5), 
+        _ => (), 
+    }
+    match webbbew(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-15000, 4), 
+        1 => return (15000, 4), 
+        _ => (), 
+    }
+    match ebeeebe(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-7500, 5), 
+        1 => return (7500, 5), 
+        _ => (), 
+    }
+    match ebebe(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-7500, 3), 
+        1 => return (7500, 3), 
+        _ => (), 
+    }
+    match ebeebe(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-7500, 4), 
+        1 => return (7500, 4), 
+        _ => (), 
+    }
+    match ebbw(raw_board, f_x, f_y, coordinates, color) { // define Who play to get score
+        -1 => {
+            if color == current_player_color {
+                return (10000, 2)
+            }
+            return (-10000, 2)
+        },
+        1 => {
+            if color == current_player_color {
+                return (5000, 2)
+            }
+            return (-10000, 2)
+        },
+        _ => (), 
+    }
+    match ebebw(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-10000, 3), 
+        1 => return (10000, 3), 
+        _ => (), 
+    }
+    match ebeebw(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-5000, 4), 
+        1 => return (5000, 4), 
+        _ => (), 
+    }
+    match two_in_a_row(raw_board, f_x, f_y, coordinates, color) {
+        -1 => return (-10000, 2), 
+        1 => return (10000, 2), 
+        _ => (), 
+    };
         (0, 1)
 }
 
@@ -155,7 +240,7 @@ fn skip(x: usize, _:i32) -> usize {
     x
 }
 
-pub fn iter_on_board(raw_board: &Board, mode: Mode, color: Color) -> i32 {
+pub fn iter_on_board(raw_board: &Board, mode: Mode, color: Color, current_player_color: Color) -> i32 {
     let (f_x, f_y, start): (fn(usize, i32) -> usize, fn(usize, i32) -> usize, Input) = match mode {
         Mode::Vertically => (skip, add, (0, 0)),
         Mode::Horizontaly => (add, skip, (0, 0)),
@@ -173,7 +258,7 @@ pub fn iter_on_board(raw_board: &Board, mode: Mode, color: Color) -> i32 {
             i += 1;
             continue
         }
-        let (curr_note, skip) = get_cases(&raw_board, f_x, f_y, &coordinates, color);
+        let (curr_note, skip) = get_cases(&raw_board, f_x, f_y, &coordinates, color, current_player_color);
         note += curr_note;
         coordinates.drift(f_x, f_y, skip as i32);
         i += skip;
@@ -213,7 +298,7 @@ pub fn pruning_heuristic(input: Input, board: &Board) -> bool {
     false
 }
 
-pub fn heuristic(board: Board, players: Players, default_color: Color) -> i32 {
+pub fn heuristic(board: &Board, players: &Players, default_color: Color) -> i32 {
     let me = players.get_player(default_color);
     match players.is_finished() {
         (true, Some(color)) => {
@@ -240,10 +325,10 @@ pub fn heuristic(board: Board, players: Players, default_color: Color) -> i32 {
     let mut eval = 0;
     eval += ((me.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
     eval -= ((opponent.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
-    eval += iter_on_board(&board, Mode::Horizontaly, default_color);
-    eval += iter_on_board(&board, Mode::Vertically, default_color);
-    eval += iter_on_board(&board, Mode::Diagoneso, default_color);
-    eval += iter_on_board(&board, Mode::Diagonose, default_color);
+    eval += iter_on_board(board, Mode::Horizontaly, default_color, players.get_current_player().get_player_color());
+    eval += iter_on_board(board, Mode::Vertically, default_color, players.get_current_player().get_player_color());
+    eval += iter_on_board(board, Mode::Diagoneso, default_color, players.get_current_player().get_player_color());
+    eval += iter_on_board(board, Mode::Diagonose, default_color, players.get_current_player().get_player_color());
     eval
     // gagner / perdu capture prochain tour
     // gagner / perdu alignement prochain tour

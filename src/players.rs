@@ -1,16 +1,23 @@
 use crate::color::Color;
+use std::fmt;
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
 pub enum PlayerType {
     Bot,
     Human
 }
 
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
 pub struct Player {
     color: Color,
     player_type: PlayerType,
     captured: usize,
+}
+
+impl fmt::Display for Player {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} -- {}", self.color, self.captured)
+    }
 }
 
 impl Player {
@@ -35,13 +42,26 @@ impl Player {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug, Eq, Hash)]
 pub struct Players {
     player1: Player,
     player2: Player,
     current_player: Player,
     captured_nb: usize,
     capture_range: usize
+}
+
+impl fmt::Display for Players {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let current_player = self.get_current_player();
+        let mut is_player_1 = "".to_owned();
+        let mut is_player_2 = "".to_owned();
+        match current_player.get_player_color() {
+            Color::Black => is_player_1 = "<".to_owned(),
+            _ => is_player_2 = "<".to_owned()
+        }
+        write!(f, "Player 1: {} {}\nPlayer 2: {} {}", self.get_player(Color::Black), is_player_1, self.get_player(Color::White), is_player_2)
+    }
 }
 
 impl Players {

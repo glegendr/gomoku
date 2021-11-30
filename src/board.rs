@@ -6,7 +6,7 @@ use crate::players::{Players, Player};
 
 pub type Input = (usize, usize);
 
-#[derive(PartialEq, Clone, Debug, Copy, Eq, Ord, PartialOrd)]
+#[derive(PartialEq, Clone, Debug, Copy, Eq, Ord, PartialOrd, Hash)]
 pub enum Tile {
     Color(Color),
     Empty
@@ -21,7 +21,7 @@ impl fmt::Display for Tile {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Eq, Hash, Debug)]
 pub struct Board {
     board: Vec<Tile>,
     board_length: usize,
@@ -70,6 +70,10 @@ impl Board {
 
     pub fn get(&self, input: Input) -> Tile {
         self.board[input.0 + input.1 * self.get_size()]
+    }
+
+    pub fn get_index(&self, i: usize) -> Tile {
+        self.board[i]
     }
 
     pub fn is_finished(&self, player: Player) -> (bool, Option<Color>) {
@@ -277,7 +281,7 @@ impl Board {
         false
     }
 
-    pub fn add_value(&mut self, input: Input, players: &mut Players) -> Result<(), PlacementError> {
+    pub fn check_add_value(&self, input: Input, players: &Players) -> Result<(), PlacementError> {
         let color = players.get_current_player().get_player_color();
         if input.0 > self.get_size() - 1 || input.1 > self.get_size() - 1 {
             return Err(PlacementError::OutOfBounds)
@@ -286,11 +290,25 @@ impl Board {
         } else if self.check_double_free_three(input, color) {
             return Err(PlacementError::DoubleFreeThree)
         }
+        Ok(())
+    }
+
+    pub fn add_value_checked(&mut self, input: Input, players: &mut Players) {
+        let color = players.get_current_player().get_player_color();
         if self.get_capture_range() != 0 {
             self.capture(input, players);
         }
         self.replace(input, Tile::Color(color));
-        Ok(())
+    }
+
+    pub fn add_value(&mut self, input: Input, players: &mut Players) -> Result<(), PlacementError> {
+        match self.check_add_value(input, players) {
+            Ok(()) => {
+                self.add_value_checked(input, players);
+                Ok(())
+            },
+            err => err
+        }
     }
 
     fn capture(&mut self, input: Input, players: &mut Players) {
