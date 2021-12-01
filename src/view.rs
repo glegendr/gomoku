@@ -1,47 +1,78 @@
 use crate::board::*;
 use crate::color::{Color};
-use graphics::{Context, Graphics, CircleArc, Rectangle, Line};
+use graphics::{Context, Graphics, CircleArc, Line};
 
 pub struct View {
-    size: f64,
-    background_color: [f64; 4],
-    grid_color: [f32; 4],
+    background_color: [f32; 4],
+    grid_start: f64,
+    grid_end: f64,
     grid_thickness: f64,
     cell_size: f64,
+    stone_size: f64,
+    circle_start: f64,
+    circle_end: f64
 }
 
 impl View {
     pub fn new(board: &Board) -> View {
         let lenght: f64 = 1000.0;
+        let cell: f64 = lenght / board.get_size() as f64;
+        let stone: f64 = ((cell - 2.0) * 2.0) / 3.0;
         View {
-            size: lenght,
             background_color: [0.35, 0.18, 0.0, 1.0], // Brown
-            grid_color: [0.0, 0.0, 0.0, 1.0], //Black
+            grid_start: 0.0,
+            grid_end: lenght,
             grid_thickness: 2.0,
-            cell_size: lenght / board.get_size() as f64,
+            cell_size: cell,
+            stone_size: stone,
+            circle_start: 0.0,
+            circle_end: 6.3
         }
     }
 
-    fn get_size(&self) -> f64 {
-        self.size
+    pub fn get_background_color(&self) -> [f32; 4] {
+        self.background_color
+    }
+
+    fn get_grid_start(&self) -> f64 {
+        self.grid_start
+    }
+
+    fn get_grid_end(&self) -> f64 {
+        self.grid_end
     }
 
     fn get_cell_size(&self) -> f64 {
         self.cell_size
     }
 
-    fn draw_stones<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G) {
-        let cell: f64 = self.get_size() / board.get_size() as f64;
-        for (i, stone)  in board.get_board().iter().enumerate() {
-            let input = board.get_input(i);
-            if *stone == Tile::Color(Color::White) {
-                Rectangle::new([1.0, 1.0, 1.0, 1.0])
-                    .draw([input.0 as f64 * cell + 4.0 , input.1 as f64 * cell + 4.0 as f64, cell - 8.0 , cell - 8.0], &context.draw_state, context.transform, graphics);
-            } else if *stone == Tile::Color(Color::Black) {
-                Rectangle::new([0.0, 0.0, 0.0, 1.0])
-                    .draw([input.0 as f64 * cell + 4.0, input.1 as f64 * cell + 4.0, cell - 8.0, cell - 8.0], &context.draw_state, context.transform, graphics);
-            } 
-        }
+    fn get_stone_size(&self) -> f64 {
+        self.stone_size
+    }
+
+    fn get_circle_start(&self) -> f64 {
+        self.circle_start
+    }
+
+    fn get_circle_end(&self) -> f64 {
+        self.circle_end
+    }
+
+    fn white_color(&self, intensity: f32) -> [f32; 4] {
+        [1.0, 1.0, 1.0, intensity]
+    }
+
+    fn black_color(&self, intensity: f32) -> [f32; 4] {
+        [0.0, 0.0, 0.0, intensity]
+    }
+
+    fn at_center(&self, input: Input) -> [f64; 4] {
+        [
+            input.0 as f64 * self.get_cell_size() + self.get_stone_size() / 2.0,
+            input.1 as f64 * self.get_cell_size() + self.get_stone_size() / 2.0,
+            self.get_stone_size() / 2.0,
+            self.get_stone_size() / 2.0,
+        ]
     }
 
     fn draw_circle<G: Graphics>(
@@ -49,12 +80,13 @@ impl View {
         radius: f64,
         start: f64,
         end: f64,
+        rec: [f64; 4],
         context: &Context,
         graphics: &mut G
     ) {
         CircleArc::new(color, radius, start, end)
             .draw(
-                [100.0, 100.0, 50.0, 50.0],
+                rec,
                 &context.draw_state,
                 context.transform,
                 graphics
@@ -77,29 +109,76 @@ impl View {
             );
     }
 
+    fn draw_stones<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G) {
+        for (i, stone)  in board.get_board().iter().enumerate() {
+            if *stone == Tile::Color(Color::White) {
+                View::draw_circle(
+                    self.white_color(1.0),
+                    self.get_stone_size() / 2.0,
+                    self.get_circle_start(),
+                    self.get_circle_end(),
+                    self.at_center(board.get_input(i)),
+                    context,
+                    graphics
+                );
+            } else if *stone == Tile::Color(Color::Black) {
+                View::draw_circle(
+                    self.black_color(1.0),
+                    self.get_stone_size() / 2.0,
+                    self.get_circle_start(),
+                    self.get_circle_end(),
+                    self.at_center(board.get_input(i)),
+                    context,
+                    graphics
+                );
+            } 
+        }
+    }
+
     fn draw_grid<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G) {
-        View::draw_circle([0.5, 0.5, 0.5, 1.0], 1.0, 0.0, 6.3, context, graphics);
         for i in 0..board.get_size() {
             View::draw_line(
-                self.grid_color,
+                self.black_color(1.0),
                 self.grid_thickness,
-                [i as f64 * self.get_cell_size(), 0.0, i as f64 * self.get_cell_size(), self.get_size()],
+                [
+                    i as f64 * self.get_cell_size() + self.get_cell_size() / 2.0,
+                    self.get_grid_start(),
+                    i as f64 * self.get_cell_size() + self.get_cell_size() / 2.0,
+                    self.get_grid_end()
+                ],
                 context,
                 graphics
             );
         }
         for i in 0..board.get_size() {
             View::draw_line(
-                self.grid_color,
+                self.black_color(1.0),
                 self.grid_thickness,
-                [0.0, i as f64 * self.get_cell_size(), self.get_size(), i as f64 * self.get_cell_size()],
+                [
+                    self.get_grid_start(),
+                    i as f64 * self.get_cell_size() + self.get_cell_size() / 2.0,
+                    self.get_grid_end(),
+                    i as f64 * self.get_cell_size() + self.get_cell_size() / 2.0
+                ],
                 context,
                 graphics
             );
         }
     }
 
-    pub fn draw<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G) {
+    pub fn draw<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G, mpos: [f64; 2]) {
+        View::draw_circle(
+            self.black_color(1.0),
+            self.get_stone_size() / 2.0,
+            self.get_circle_start(),
+            self.get_circle_end(),
+            self.at_center((
+                    mpos[0] as usize / self.get_cell_size() as usize,
+                    mpos[1] as usize / self.get_cell_size() as usize
+            )),
+            context,
+            graphics
+        );
         self.draw_grid(board, context, graphics);
         self.draw_stones(board, context, graphics);
     }

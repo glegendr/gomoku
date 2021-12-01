@@ -28,6 +28,7 @@ use glutin_window::GlutinWindow;
 use opengl_graphics::{OpenGL, GlGraphics};
 use graphics::{clear};
 
+/*
 fn get_human_input(_player_color: Color) -> Input {
     let mut guess = String::new();
     io::stdin()
@@ -41,7 +42,7 @@ fn get_human_input(_player_color: Color) -> Input {
     (vec[0] as usize, vec[1] as usize)
 }
 
-fn game(board: &mut Board, players: &mut Players) {
+fn game<E: GenericEvent>(board: &mut Board, players: &mut Players) {
     /*
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
@@ -69,6 +70,48 @@ fn game(board: &mut Board, players: &mut Players) {
     match board.add_value(input, players) {
         Ok(_) => players.next_player(),
         Err(e) => println!("{}", e)
+    };
+}
+*/
+
+fn get_human_input_graphic<E: GenericEvent>(_player_color: Color, mpos: [f64; 2], event: &E) -> Input {
+    if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
+        println!("LEFT CLICK !!  {:?}", mpos);
+        return (mpos[0] as usize / 52, mpos[1] as usize / 52)
+    }
+    (usize::MAX, usize::MAX)
+}
+
+fn game_graphic<E: GenericEvent>(board: &mut Board, players: &mut Players, mpos: [f64; 2], event: &E) {
+    /*
+    match (board.is_finished(players.get_current_player()), players.is_finished()) {
+        (_, (true, Some(color))) => {
+            println!("BRAVO {:?} \"{}\"", color, color);
+            break;
+        },
+        ((true, None), _) => {
+            println!("DRAW !");
+            break;
+        },
+        ((true, Some(color)), _) => {
+            println!("BRAVO {:?} \"{}\"", color, color);
+            break;
+        },
+        _ => ()
+    };
+    */
+    let now = time::Instant::now();
+    let input = match players.get_current_player().get_player_type() {
+        PlayerType::Human => get_human_input_graphic(players.get_current_player().get_player_color(), mpos, event),
+        PlayerType::Bot => get_bot_input(&players, &board),
+    };
+    let elapsed_time = now.elapsed();
+    println!("Input took {:?}.", elapsed_time);
+    if input.0 < board.get_size() && input.1 < board.get_size() {
+        match board.add_value(input, players) {
+            Ok(_) => players.next_player(),
+            Err(e) => println!("{}", e)
+        }
     };
 }
 
@@ -102,17 +145,21 @@ fn main() {
     let mut gl = GlGraphics::new(opengl);
     let view = View::new(&board);
 
+    let mut mpos: [f64; 2] = [0.0; 2];
     while let Some(event) = events.next(&mut window) {
         //EVENT
+        if let Some(pos) = event.mouse_cursor_args() {
+            mpos = pos
+        }
+        game_graphic(&mut board, &mut players, mpos, &event);
         if let Some(args) = event.render_args() {
             gl.draw(args.viewport(), |context, graphics| {
-                clear([0.35, 0.18, 0.0, 1.0], graphics);
-                game(&mut board, &mut players);
-                view.draw(&board, &context, graphics)
+                clear(view.get_background_color(), graphics);
+                view.draw(&board, &context, graphics, mpos)
                 //DRAW
             });
         }
-            println!("{}", board);
+            //println!("{}", board);
     }
     // board.add_value((3, 3), &mut players);
     // board.add_value((4, 3), &mut players);
