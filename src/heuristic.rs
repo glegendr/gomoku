@@ -103,7 +103,7 @@ impl Coordinates {
 
 fn get_cases(raw_board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color, _current_player_color: Color) -> (i32, usize) {
     match webbbew(raw_board, f_x, f_y, coordinates, color) {
-        Some(score) => return (score, 3),
+        Some(score) => return (score, 4),
         None => ()
     }
     match bbbbb(raw_board, f_x, f_y, coordinates, color) {
@@ -316,12 +316,13 @@ fn get_distance(board: &Board, distance: i32, input: Input) -> bool {
 }
 
 pub fn pruning_heuristic(input: Input, board: &Board) -> bool {
-    for distance in 1..=1 {
-        if get_distance(board, distance, input) {
-            return true
-        }
-    }
-    false
+    // for distance in 1..=1 {
+    //     if get_distance(board, distance, input) {
+    //         return true
+    //     }
+    // }
+    // false
+    get_distance(board, 1, input)
 }
 
 pub fn heuristic(board: &Board, players: &Players, default_color: Color) -> i32 {

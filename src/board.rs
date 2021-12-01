@@ -77,20 +77,17 @@ impl Board {
     }
 
     pub fn is_finished(&self, player: Player) -> (bool, Option<Color>) {
-        match self.board.iter().enumerate().map(|(i, x)| {
-            if let Tile::Color(color) = x {
-                return self.check_victory(i, *color, x, *color == player.get_player_color())
-            }
-            (false, None)
-        }).find(|x| x.0 == true) {
-            Some((true, Some(color))) => (true, Some(color)),
-            _ => {
-                if !self.board.iter().any(|x| *x == Tile::Empty) {
-                    return (true, None)
+        for i in 0..self.board.len() {
+            if let Tile::Color(color) = self.board[i] {
+                if let (true, Some(winner)) = self.check_victory(i, color, &self.board[i], color == player.get_player_color()) {
+                    return (true, Some(winner))
                 }
-                (false, None)
             }
         }
+        if !self.board.iter().any(|x| *x == Tile::Empty) {
+            return (true, None)
+        }
+        (false, None)
     }
 
     pub fn _get_free_three(&self, input: Input, color: Color) -> u8 {
@@ -107,14 +104,14 @@ impl Board {
             case2(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize),
             case2(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize),
             case2(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),  
-            case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x),
-            case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x),
-            case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize),
-            case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize),
-            case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize),
-            case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize),
-            case3(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize),
-            case3(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),    
+            _case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x),
+            _case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x),
+            _case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize),
+            _case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize),
+            _case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize),
+            _case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize),
+            _case3(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize),
+            _case3(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),    
             case4(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x),
             case4(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x),
             case4(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize),
@@ -123,14 +120,14 @@ impl Board {
             case4(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize),
             case4(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize),
             case4(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),
-            case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x),
-            case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x),
-            case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize),
-            case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize),
-            case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize),
-            case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize),
-            case5(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize),
-            case5(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),
+            _case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x),
+            _case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x),
+            _case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize),
+            _case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize),
+            _case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize),
+            _case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize),
+            _case5(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize),
+            _case5(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),
         ];
         lst.iter().sum::<u8>()
     }
@@ -182,35 +179,35 @@ impl Board {
         if count >= 2 {
             return true
         }
-        count += case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x);
+        count += case_size_5(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x);
         if count >= 2 {
             return true
         }
-        count += case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x);
+        count += case_size_5(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x);
         if count >= 2 {
             return true
         }
-        count += case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize);
+        count += case_size_5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize);
         if count >= 2 {
             return true
         }
-        count += case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize);
+        count += case_size_5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize);
         if count >= 2 {
             return true
         }
-        count += case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize);
+        count += case_size_5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize);
         if count >= 2 {
             return true
         }
-        count += case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize);
+        count += case_size_5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize);
         if count >= 2 {
             return true
         }
-        count += case3(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize);
+        count += case_size_5(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize);
         if count >= 2 {
             return true
         }
-        count += case3(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize);   
+        count += case_size_5(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize);   
         if count >= 2 {
             return true
         }
@@ -246,38 +243,38 @@ impl Board {
         if count >= 2 {
             return true
         }
-        count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x);
-        if count >= 2 {
-            return true
-        }
-        count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x);
-        if count >= 2 {
-            return true
-        }
-        count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize);
-        if count >= 2 {
-            return true
-        }
-        count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize);
-        if count >= 2 {
-            return true
-        }
-        count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize);
-        if count >= 2 {
-            return true
-        }
-        count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize);
-        if count >= 2 {
-            return true
-        }
-        count += case5(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize);
-        if count >= 2 {
-            return true
-        }
-        count += case5(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize);
-        if count >= 2 {
-            return true
-        }
+        // count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x);
+        // if count >= 2 {
+        //     return true
+        // }
+        // count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x);
+        // if count >= 2 {
+        //     return true
+        // }
+        // count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize);
+        // if count >= 2 {
+        //     return true
+        // }
+        // count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize);
+        // if count >= 2 {
+        //     return true
+        // }
+        // count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize);
+        // if count >= 2 {
+        //     return true
+        // }
+        // count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize);
+        // if count >= 2 {
+        //     return true
+        // }
+        // count += case5(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize);
+        // if count >= 2 {
+        //     return true
+        // }
+        // count += case5(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize);
+        // if count >= 2 {
+        //     return true
+        // }
         false
     }
 
@@ -482,7 +479,7 @@ fn execute_capture(
     }
 }
 
-
+/* .-X-XX.*/
 fn case1(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
     if f_x(input.0, 3) > board.get_size() - 1 || f_x(input.0, -1) > board.get_size() - 1 || f_y(input.1, 3) > board.get_size() - 1 || f_y(input.1, -1) > board.get_size() - 1 {
         return 0
@@ -500,6 +497,7 @@ fn case1(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize
     }
 }
 
+/* .X-X-X. */
 fn case2(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
     if f_x(input.0, 2) > board.get_size() - 1 || f_x(input.0, -2) > board.get_size() - 1 || f_y(input.1, 2) > board.get_size() - 1 || f_y(input.1, -2) > board.get_size() - 1 {
         return 0
@@ -517,7 +515,8 @@ fn case2(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize
     }
 }
 
-fn case3(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
+/* .-X-X.X.*/
+fn _case3(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
     if f_x(input.0, 4) > board.get_size() - 1 || f_x(input.0, -1) > board.get_size() - 1 || f_y(input.1, 4) > board.get_size() - 1 || f_y(input.1, -1) > board.get_size() - 1 {
         return 0
     }
@@ -535,6 +534,7 @@ fn case3(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize
     }
 }
 
+/* .X-X-.X. */
 fn case4(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
     if f_x(input.0, 3) > board.get_size() - 1 || f_x(input.0, -2) > board.get_size() - 1 || f_y(input.1, 3) > board.get_size() - 1 || f_y(input.1, -2) > board.get_size() - 1 {
         return 0
@@ -553,7 +553,8 @@ fn case4(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize
     }
 }
 
-fn case5(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
+/* .-X-.XX. */
+fn _case5(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
     if f_x(input.0, 4) > board.get_size() - 1 || f_x(input.0, -1) > board.get_size() - 1 || f_y(input.1, 4) > board.get_size() - 1 || f_y(input.1, -1) > board.get_size() - 1 {
         return 0
     }
@@ -567,6 +568,28 @@ fn case5(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize
     ) {
         (Color::Black, Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty, Tile::Empty) => 1,
         (Color::White, Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty, Tile::Empty) => 1,
+        _ => 0
+    }
+}
+
+fn case_size_5(board: &Board, input: Input, color: Color, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize) -> u8 {
+    if f_x(input.0, 4) > board.get_size() - 1 || f_x(input.0, -1) > board.get_size() - 1 || f_y(input.1, 4) > board.get_size() - 1 || f_y(input.1, -1) > board.get_size() - 1 {
+        return 0
+    }
+    match (
+        board.get((f_x(input.0, -1), f_y(input.1, -1))),
+        color,
+        board.get((f_x(input.0, 1), f_y(input.1, 1))),
+        board.get((f_x(input.0, 2), f_y(input.1, 2))),
+        board.get((f_x(input.0, 3), f_y(input.1, 3))),
+        board.get((f_x(input.0, 4), f_y(input.1, 4))),
+    ) {
+        /* .-X-.XX. */
+        (Tile::Empty, Color::Black, Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty) => 1,
+        (Tile::Empty, Color::White, Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty) => 1,
+        /* .-X-X.X. */
+        (Tile::Empty, Color::Black, Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Empty) => 1,
+        (Tile::Empty, Color::White, Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Empty) => 1,
         _ => 0
     }
 }

@@ -31,7 +31,7 @@ fn get_human_input(_player_color: Color) -> Input {
 fn main() {
     let mut args: Vec<String> = env::args().collect();
     let mut board: Board;
-    let player1 = Player::new(Color::Black, PlayerType::Human);
+    let player1 = Player::new(Color::Black, PlayerType::Bot);
     let player2 = Player::new(Color::White, PlayerType::Bot);
     let mut tree_player_1: Option<Tree> = None;
     let mut tree_player_2: Option<Tree> = None;
