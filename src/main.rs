@@ -42,7 +42,7 @@ fn get_human_input(_player_color: Color) -> Input {
     (vec[0] as usize, vec[1] as usize)
 }
 
-fn game<E: GenericEvent>(board: &mut Board, players: &mut Players) {
+fn game(board: &mut Board, players: &mut Players) {
     /*
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
@@ -74,35 +74,36 @@ fn game<E: GenericEvent>(board: &mut Board, players: &mut Players) {
 }
 */
 
-fn get_human_input_graphic<E: GenericEvent>(_player_color: Color, mpos: [f64; 2], event: &E) -> Input {
+fn get_human_input_graphic<E: GenericEvent>(_player_color: Color, mpos: [f64; 2], event: &E, view: &View) -> Input {
     if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
         println!("LEFT CLICK !!  {:?}", mpos);
-        return (mpos[0] as usize / 52, mpos[1] as usize / 52)
+        return (
+            mpos[0] as usize / view.get_cell_size() as usize,
+            mpos[1] as usize / view.get_cell_size() as usize
+        )
     }
     (usize::MAX, usize::MAX)
 }
 
-fn game_graphic<E: GenericEvent>(board: &mut Board, players: &mut Players, mpos: [f64; 2], event: &E) {
-    /*
+fn game_graphic<E: GenericEvent>(board: &mut Board, players: &mut Players, mpos: [f64; 2], event: &E, view: &View) {
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
             println!("BRAVO {:?} \"{}\"", color, color);
-            break;
+            process::exit(1);
         },
         ((true, None), _) => {
             println!("DRAW !");
-            break;
+            process::exit(1);
         },
         ((true, Some(color)), _) => {
             println!("BRAVO {:?} \"{}\"", color, color);
-            break;
+            process::exit(1);
         },
         _ => ()
     };
-    */
     let now = time::Instant::now();
     let input = match players.get_current_player().get_player_type() {
-        PlayerType::Human => get_human_input_graphic(players.get_current_player().get_player_color(), mpos, event),
+        PlayerType::Human => get_human_input_graphic(players.get_current_player().get_player_color(), mpos, event, view),
         PlayerType::Bot => get_bot_input(&players, &board),
     };
     let elapsed_time = now.elapsed();
@@ -119,7 +120,8 @@ fn main() {
     let mut args: Vec<String> = env::args().collect();
     let mut board: Board;
     let player1 = Player::new(Color::Black, PlayerType::Human);
-    let player2 = Player::new(Color::White, PlayerType::Bot);
+    let player2 = Player::new(Color::White, PlayerType::Human);
+    //let player2 = Player::new(Color::White, PlayerType::Bot);
     let mut players: Players;
     match leakser(&mut args[1..]) {
         Ok((m, c, r, a)) => {
@@ -147,23 +149,15 @@ fn main() {
 
     let mut mpos: [f64; 2] = [0.0; 2];
     while let Some(event) = events.next(&mut window) {
-        //EVENT
         if let Some(pos) = event.mouse_cursor_args() {
             mpos = pos
         }
-        game_graphic(&mut board, &mut players, mpos, &event);
+        game_graphic(&mut board, &mut players, mpos, &event, &view);
         if let Some(args) = event.render_args() {
             gl.draw(args.viewport(), |context, graphics| {
                 clear(view.get_background_color(), graphics);
-                view.draw(&board, &context, graphics, mpos)
-                //DRAW
+                view.draw(&board, &players, &context, graphics, mpos)
             });
         }
-            //println!("{}", board);
     }
-    // board.add_value((3, 3), &mut players);
-    // board.add_value((4, 3), &mut players);
-    // board.add_value((3, 4), &mut players);
-    // board.add_value((4, 4), &mut players);
-    // iter_on_board(&board, Mode::Diagonose, Color::Black);
 }
