@@ -30,12 +30,24 @@ pub fn check_args(flags: &[String]) -> bool {
 }
 
 
-fn check_flag_exist(flag: &str) -> bool {
+fn check_map_flag_exist(flag: &str) -> bool {
     let lst_flags: Vec<&str> = vec![
         "-s", "--size",
         "-c", "--captured",
         "-r", "--range",
-        "-a", "--alignement"
+        "-a", "--alignement",
+        "-v", "--visual"
+    ];
+    if lst_flags.iter().any(|x| *x == flag) {
+        return true;
+    }
+    false
+}
+
+
+fn check_true_false_flag_exist(flag: &str) -> bool {
+    let lst_flags: Vec<&str> = vec![
+        "-v", "--visual"
     ];
     if lst_flags.iter().any(|x| *x == flag) {
         return true;
@@ -51,12 +63,12 @@ pub fn check_flags(flags: &[String]) -> bool {
                 if i == 0 {
                     return false;
                 }
-                return check_flag_exist(flags[i - 1].as_str());
+                return check_map_flag_exist(flags[i - 1].as_str());
             },
             Err(_) => {
                 if x.split('=').collect::<Vec<&str>>().len() == 2 {
-                    return check_flag_exist(x.split('=').collect::<Vec<&str>>()[0]);
-                } else {
+                    return check_map_flag_exist(x.split('=').collect::<Vec<&str>>()[0]);
+                } else if check_true_false_flag_exist(x) == false {
                     if i + 1 >= flags.len() {
                         return false
                     }
@@ -64,7 +76,9 @@ pub fn check_flags(flags: &[String]) -> bool {
                         Ok(_) => (),
                         Err(_)=> return false
                     }
-                    return check_flag_exist(x);
+                    return check_map_flag_exist(x);
+                } else {
+                    true
                 }
             }
         }

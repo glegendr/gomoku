@@ -76,11 +76,13 @@ fn game(board: &mut Board, players: &mut Players) {
 
 fn get_human_input_graphic<E: GenericEvent>(_player_color: Color, mpos: [f64; 2], event: &E, view: &View) -> Input {
     if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
-        println!("LEFT CLICK !!  {:?}", mpos);
-        return (
-            mpos[0] as usize / view.get_cell_size() as usize,
-            mpos[1] as usize / view.get_cell_size() as usize
-        )
+        if mpos[0] > view.get_grid_start() && mpos[0] < view.get_grid_end()
+            && mpos[1] > view.get_grid_start() && mpos[1] < view.get_grid_end() {
+            return (
+                (mpos[0] as usize - view.get_grid_start() as usize) / view.get_cell_size() as usize,
+                (mpos[1] as usize - view.get_grid_start() as usize) / view.get_cell_size() as usize
+            )
+        }
     }
     (usize::MAX, usize::MAX)
 }
@@ -123,10 +125,12 @@ fn main() {
     let player2 = Player::new(Color::White, PlayerType::Human);
     //let player2 = Player::new(Color::White, PlayerType::Bot);
     let mut players: Players;
+    let visual: bool;
     match leakser(&mut args[1..]) {
-        Ok((m, c, r, a)) => {
+        Ok((m, c, r, a, v)) => {
             board = Board::new(m, a, r);
-            players = Players::new(player1, player2, c, r)
+            players = Players::new(player1, player2, c, r);
+            visual = v;
         },
         Err(e) => {
             println!("{}", e);
@@ -137,17 +141,18 @@ fn main() {
         }
     };
 
+    println!("{}", visual);
+    let view = View::new(&board);
     let opengl = OpenGL::V3_2;
-    let settings = WindowSettings::new("Gomoku", [1000, 1000])
+    let settings = WindowSettings::new("Gomoku", [view.get_window_size(), view.get_window_size()])
         .graphics_api(opengl)
         .exit_on_esc(true);
     let mut window: GlutinWindow = settings.build()
         .expect("Could not create window");
     let mut events = Events::new(EventSettings::new().lazy(true));
     let mut gl = GlGraphics::new(opengl);
-    let view = View::new(&board);
-
     let mut mpos: [f64; 2] = [0.0; 2];
+
     while let Some(event) = events.next(&mut window) {
         if let Some(pos) = event.mouse_cursor_args() {
             mpos = pos

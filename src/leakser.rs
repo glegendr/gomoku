@@ -6,7 +6,7 @@ const ALIGNEMENT_NB: usize = 5;
 use crate::error::{FlagError};
 use crate::parser::{check_flags, check_args, check_numbers};
 
-fn get_flag(flags: &[String], f1: &str, f2: &str, ret: usize) -> usize {
+fn get_map_flag(flags: &[String], f1: &str, f2: &str, ret: usize) -> usize {
     for (i, x) in flags.iter().enumerate() {
         match x.parse::<usize>() {
             Ok(y) => {
@@ -26,6 +26,16 @@ fn get_flag(flags: &[String], f1: &str, f2: &str, ret: usize) -> usize {
         }
     };
     ret
+}
+
+
+fn get_v_flag(flags: &mut [String]) -> bool {
+    for f in flags.iter() {
+        if f == "-v" || f == "--visual" {
+            return true
+        }
+   }
+   false
 }
 
 
@@ -51,7 +61,7 @@ fn check_rules(flags: &mut [String]) -> Result<(), FlagError> {
 }
 
 
-pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize), FlagError> {
+pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, bool), FlagError> {
     if flags.len() > 0 { 
         if flags[0] == "main.rs" {
             flags = &mut flags[1..];
@@ -71,10 +81,11 @@ pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize),
             return Err(FlagError::WrongFlag)
         }
     }
-    let board_length = get_flag(flags, "-s", "--size", BOARD_LENGTH);
-    let captured_nb = get_flag(flags, "-c", "--captured", CAPTURED_NB);
-    let capture_range = get_flag(flags, "-r", "--range", CAPTURE_RANGE);
-    let alignement_nb = get_flag(flags, "-a", "--alignement", ALIGNEMENT_NB);
+    let visual: bool = get_v_flag(flags);
+    let board_length = get_map_flag(flags, "-s", "--size", BOARD_LENGTH);
+    let captured_nb = get_map_flag(flags, "-c", "--captured", CAPTURED_NB);
+    let capture_range = get_map_flag(flags, "-r", "--range", CAPTURE_RANGE);
+    let alignement_nb = get_map_flag(flags, "-a", "--alignement", ALIGNEMENT_NB);
     match check_numbers(
         board_length,
         captured_nb,
@@ -82,7 +93,7 @@ pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize),
         alignement_nb
     ) {
         Err(e) => Err(e),
-        _ => Ok((board_length, captured_nb, capture_range, alignement_nb))
+        _ => Ok((board_length, captured_nb, capture_range, alignement_nb, visual))
     }
 }
 
