@@ -243,38 +243,6 @@ impl Board {
         if count >= 2 {
             return true
         }
-        // count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x);
-        // if count >= 2 {
-        //     return true
-        // }
-        // count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x);
-        // if count >= 2 {
-        //     return true
-        // }
-        // count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize);
-        // if count >= 2 {
-        //     return true
-        // }
-        // count += case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize);
-        // if count >= 2 {
-        //     return true
-        // }
-        // count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize);
-        // if count >= 2 {
-        //     return true
-        // }
-        // count += case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize);
-        // if count >= 2 {
-        //     return true
-        // }
-        // count += case5(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize);
-        // if count >= 2 {
-        //     return true
-        // }
-        // count += case5(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize);
-        // if count >= 2 {
-        //     return true
-        // }
         false
     }
 

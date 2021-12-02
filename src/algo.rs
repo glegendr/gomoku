@@ -18,7 +18,7 @@ pub struct Tree {
 
 impl fmt::Display for Tree {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}\n{}\nLeaves: {}", self.data.0, self.data.1, self.children.len())
+        write!(f, "-----------\nInput: {}\nLeaves: {}", self.input, self.children.len())
     }
 }
 
@@ -30,18 +30,6 @@ impl Tree {
     fn push(&mut self, child: Tree) {
         self.children.push(child);
     }
-
-    // fn get(&mut self, i: usize) -> &Tree {   
-    //     self.children.get(i).unwrap()
-    // }
-
-    // fn get_mut(&mut self, i: usize) -> &mut Tree {
-    //     self.children.get_mut(i).unwrap()
-    // }
-
-    // fn len(&self) -> usize {
-    //     self.children.len()
-    // }
 
     fn _leaves(&self) -> usize {
         let mut ret = 1;
@@ -82,22 +70,33 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
     if calculated_tree.is_some() {
         if let Some(tree) = calculated_tree.unwrap().find((&board, &players)) {
             if tree.children.len() > 0 {
+                if let Some(finished_tree) = tree.children.iter().find(|x| x.score == i32::MAX) {
+                    return (finished_tree.input, None)
+                }
                 tree.children.iter().for_each(|x| {
-                    let mut new_tree = x.clone();
-                    handle.push(thread::spawn(move || {
-                        let score = minimax(MINMAX_DEPTH - 1, false, i32::MIN, i32::MAX, color, &mut new_tree);
-                        // let score = pvs(&mut new_tree, MINMAX_DEPTH - 1, i32::MIN + 1, i32::MAX, color);
-                        return (score, new_tree.input, Some(new_tree))
-                    }));
+                    if x.children.len() > 0 {
+                        let mut new_tree = x.clone();
+                        handle.push(thread::spawn(move || {
+                            let score = minimax(MINMAX_DEPTH - 1, false, i32::MIN, i32::MAX, color, &mut new_tree);
+                            // let score = pvs(&mut new_tree, MINMAX_DEPTH - 1, i32::MIN + 1, i32::MAX, color);
+                            return (score, new_tree.input, Some(new_tree))
+                        }));
+                    }
                 });
                 let mut values = Vec::new();
                 for child in handle {
                     values.push(child.join().unwrap());
                 }
-                let ret = values.iter().fold((i32::MIN, 0, None), |acc, x| {
-                    if x.0 >= acc.0 {
-                        (*x).clone()
+                let ret = values.iter().fold((i32::MIN, 0, None, 0), |mut acc, x| {
+                    let new_nb = if x.2.is_some() {
+                        acc.3 + x.2.as_ref().unwrap()._leaves()
                     } else {
+                        acc.3
+                    };
+                    if x.0 >= acc.0 {
+                        (x.0, x.1, x.2.clone(), new_nb)
+                    } else {
+                        acc.3 = new_nb;
                         acc
                     }
                 });
@@ -107,22 +106,18 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
     }
     for (i, child) in board.get_board().iter().enumerate() {
         if *child == Tile::Empty {
-            if pruning_heuristic(board.get_input(i), &board) {
+            let input = board.get_input(i);
+            if pruning_heuristic(input, &board) && board.check_add_value(input, &players).is_ok() {
                 let mut new_board = board.clone();
                 let mut new_players = players.clone();
                 handle.push(thread::spawn(move || {
-                    match new_board.add_value(new_board.get_input(i), &mut new_players) {
-                            Err(_) => return (i32::MIN, i, None),
-                            _ => {
-                                new_players.next_player();
-                                let mut tree = Tree::new((new_board, new_players), i, color);
-                                // let score = pvs(&mut tree, MINMAX_DEPTH - 1, i32::MIN, i32::MAX, color);
-                                let score = minimax(MINMAX_DEPTH - 1 , false, i32::MIN, i32::MAX, color, &mut tree);
-                                return (score, i, Some(tree))
-                            }
-                        }
-                    })
-                );
+                    new_board.add_value_checked(input, &mut new_players);
+                    new_players.next_player();
+                    let mut tree = Tree::new((new_board, new_players), i, color);
+                    // let score = pvs(&mut tree, MINMAX_DEPTH - 1, i32::MIN, i32::MAX, color);
+                    let score = minimax(MINMAX_DEPTH - 1 , false, i32::MIN, i32::MAX, color, &mut tree);
+                    return (score, i, Some(tree))
+                }));
             }
         }
     };
@@ -141,6 +136,7 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
 }
 
 fn play_everything(tree: &mut Tree, default_color: Color) -> &mut Vec<Tree> {
+    let current_player_color = tree.data.1.get_current_player().get_player_color();
     for i in 0..tree.board().get_board().len() {
         let input = tree.board().get_input(i);
         if tree.board().get_index(i) == Tile::Empty
@@ -155,13 +151,23 @@ fn play_everything(tree: &mut Tree, default_color: Color) -> &mut Vec<Tree> {
                 tree.push(new_tree);
         }
     }
-    tree.children.sort_by(|a, b| b.score.cmp(&a.score));
+    if current_player_color == default_color {
+        tree.children.sort_by(|a, b| b.score.cmp(&a.score));
+        let end = if tree.children.len() > 15 {
+            15
+        } else {
+            tree.children.len()
+        };
+        tree.children = (&tree.children[..end]).to_vec();
+    } else {
+        tree.children.sort_by(|a, b| a.score.cmp(&b.score));
+    }
     &mut tree.children
 }
 
 fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default_color: Color, tree: &mut Tree) -> i32 {
     if depth == 0 || tree.board().is_finished(tree.players().get_current_player()).0 || tree.players().is_finished().0 {
-        return tree.score
+        return heuristic(tree.board(), tree.players(), default_color)
     } else if maximizing_player {
         let mut value: i32 = i32::MIN;
         let mut new_alpha = alpha;
@@ -191,7 +197,7 @@ fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default
 
 fn pvs(tree: &mut Tree, depth: usize, mut alpha: i32, beta: i32, color: Color) -> i32 {
     if depth == 0 || tree.board().is_finished(tree.players().get_current_player()).0 || tree.players().is_finished().0 {
-        return tree.score
+        return heuristic(tree.board(), tree.players(), color)
     }
     let mut is_first = true;
     for mut child in play_everything(tree, color) {
