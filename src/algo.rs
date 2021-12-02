@@ -57,18 +57,18 @@ impl Tree {
     }
 
 }
-pub fn get_bot_input(players: &Players, board: &Board, tree: Option<Tree>) -> (Input, Option<Tree>) {
+pub fn get_bot_input(players: &Players, board: &Board, tree: &Option<Tree>) -> (Input, Option<Tree>) {
     let (index, calculated_tree) = play_everything_and_compute(board.clone(), *players, players.get_current_player().get_player_color(), tree);
     (board.get_input(index), calculated_tree)
 }
 
-fn play_everything_and_compute(board: Board, players: Players, color: Color, calculated_tree: Option<Tree>) -> (usize, Option<Tree>) {
+fn play_everything_and_compute(board: Board, players: Players, color: Color, calculated_tree: &Option<Tree>) -> (usize, Option<Tree>) {
     if board.get_board().iter().all(|x| x == &Tile::Empty) {
         return (board.get_total_tiles() / 2, None)
     }
     let mut handle:Vec<thread::JoinHandle<(i32, usize, Option<Tree>)>> = Vec::new();
     if calculated_tree.is_some() {
-        if let Some(tree) = calculated_tree.unwrap().find((&board, &players)) {
+        if let Some(tree) = calculated_tree.as_ref().unwrap().find((&board, &players)) {
             if tree.children.len() > 0 {
                 if let Some(finished_tree) = tree.children.iter().find(|x| x.score == i32::MAX) {
                     return (finished_tree.input, None)

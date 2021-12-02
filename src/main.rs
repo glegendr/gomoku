@@ -1,6 +1,6 @@
 use std::{io, time, env, process};
 mod board;
-use board::{Board, Input};
+use board::{Board, Input, Tile};
 mod error;
 use error::{FlagError};
 mod color;
@@ -14,7 +14,20 @@ use leakser::{leakser};
 mod parser;
 mod heuristic;
 mod matching_cases;
+mod view;
+use view::{View};
 
+extern crate piston;
+extern crate glutin_window;
+extern crate graphics;
+extern crate opengl_graphics;
+
+use piston::*;
+use glutin_window::GlutinWindow;
+use opengl_graphics::{OpenGL, GlGraphics};
+use graphics::{clear};
+
+/*
 fn get_human_input(_player_color: Color) -> Input {
     let mut guess = String::new();
     io::stdin()
@@ -28,6 +41,95 @@ fn get_human_input(_player_color: Color) -> Input {
     (vec[0] as usize, vec[1] as usize)
 }
 
+fn game(board: &mut Board, players: &mut Players) {
+    /*
+    match (board.is_finished(players.get_current_player()), players.is_finished()) {
+        (_, (true, Some(color))) => {
+            println!("BRAVO {:?} \"{}\"", color, color);
+            break;
+        },
+        ((true, None), _) => {
+            println!("DRAW !");
+            break;
+        },
+        ((true, Some(color)), _) => {
+            println!("BRAVO {:?} \"{}\"", color, color);
+            break;
+        },
+        _ => ()
+    };
+    */
+    let now = time::Instant::now();
+    let input = match players.get_current_player().get_player_type() {
+        PlayerType::Human => get_human_input(players.get_current_player().get_player_color()),
+        PlayerType::Bot => get_bot_input(&players, &board),
+    };
+    let elapsed_time = now.elapsed();
+    println!("Input took {:?}.", elapsed_time);
+    match board.add_value(input, players) {
+        Ok(_) => players.next_player(),
+        Err(e) => println!("{}", e)
+    };
+}
+*/
+
+fn get_human_input_graphic<E: GenericEvent>(_player_color: Color, mpos: [f64; 2], event: &E, view: &View) -> Input {
+    if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
+        if mpos[0] > view.get_grid_start() && mpos[0] < view.get_grid_end()
+            && mpos[1] > view.get_grid_start() && mpos[1] < view.get_grid_end() {
+            return (
+                (mpos[0] as usize - view.get_grid_start() as usize) / view.get_cell_size() as usize,
+                (mpos[1] as usize - view.get_grid_start() as usize) / view.get_cell_size() as usize
+            )
+        }
+    }
+    (usize::MAX, usize::MAX)
+}
+
+fn game_graphic<E: GenericEvent>(board: &mut Board, players: &mut Players, mpos: [f64; 2], event: &E, view: &View, trees: (&mut Option<Tree>, &mut Option<Tree>)) {
+    match (board.is_finished(players.get_current_player()), players.is_finished()) {
+        (_, (true, Some(color))) => {
+            println!("BRAVO {:?} \"{}\"", color, color);
+            process::exit(1);
+        },
+        ((true, None), _) => {
+            println!("DRAW !");
+            process::exit(1);
+        },
+        ((true, Some(color)), _) => {
+            println!("BRAVO {:?} \"{}\"", color, color);
+            process::exit(1);
+        },
+        _ => ()
+    };
+    let now = time::Instant::now();
+    let input = match players.get_current_player().get_player_type() {
+        PlayerType::Human => get_human_input_graphic(players.get_current_player().get_player_color(), mpos, event, view),
+        PlayerType::Bot => {
+            match players.get_current_player().get_player_color() {
+                Color::Black => {
+                    let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
+                    *trees.0 = bot_tree;
+                    bot_input
+                },
+                Color::White => {
+                    let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
+                    *trees.1 = bot_tree;
+                    bot_input
+                },
+            }
+        },
+    };
+    let elapsed_time = now.elapsed();
+    println!("Input took {:?}.", elapsed_time);
+    if input.0 < board.get_size() && input.1 < board.get_size() {
+        match board.add_value(input, players) {
+            Ok(_) => players.next_player(),
+            Err(e) => println!("{}", e)
+        }
+    };
+}
+
 fn main() {
     let mut args: Vec<String> = env::args().collect();
     let mut board: Board;
@@ -36,10 +138,12 @@ fn main() {
     let mut tree_player_1: Option<Tree> = None;
     let mut tree_player_2: Option<Tree> = None;
     let mut players: Players;
+    let visual: bool;
     match leakser(&mut args[1..]) {
-        Ok((m, c, r, a)) => {
+        Ok((m, c, r, a, v)) => {
             board = Board::new(m, a, r);
-            players = Players::new(player1, player2, c, r)
+            players = Players::new(player1, player2, c, r);
+            visual = v;
         },
         Err(e) => {
             println!("{}", e);
@@ -49,48 +153,29 @@ fn main() {
             process::exit(1);
         }
     };
-    loop {
-        match (board.is_finished(players.get_current_player()), players.is_finished()) {
-            (_, (true, Some(color))) => {
-                println!("BRAVO {:?} \"{}\"", color, color);
-                break;
-            },
-            ((true, None), _) => {
-                println!("DRAW !");
-                break;
-            },
-            ((true, Some(color)), _) => {
-                println!("BRAVO {:?} \"{}\"", color, color);
-                break;
-            },
-            _ => ()
 
-        };
-        let now = time::Instant::now();
-        let input = match players.get_current_player().get_player_type() {
-            PlayerType::Human => get_human_input(players.get_current_player().get_player_color()),
-            PlayerType::Bot => {
-                match players.get_current_player().get_player_color() {
-                    Color::Black => {
-                        let (bot_input, bot_tree) = get_bot_input(&players, &board, tree_player_1);
-                        tree_player_1 = bot_tree;
-                        bot_input
-                    },
-                    Color::White => {
-                        let (bot_input, bot_tree) = get_bot_input(&players, &board, tree_player_2);
-                        tree_player_2 = bot_tree;
-                        bot_input
-                    },
-                }
-            },
-        };
-        let elapsed_time = now.elapsed();
-        println!("Input took {:?}.", elapsed_time);
-        match board.add_value(input, &mut players) {
-            Ok(_) => players.next_player(),
-            Err(e) => println!("{}", e)
-        };
-        println!("{}", board);
-        println!("{}", players);
+    println!("{}", visual);
+    let view = View::new(&board);
+    let opengl = OpenGL::V3_2;
+    let settings = WindowSettings::new("Gomoku", [view.get_window_size(), view.get_window_size()])
+        .graphics_api(opengl)
+        .exit_on_esc(true);
+    let mut window: GlutinWindow = settings.build()
+        .expect("Could not create window");
+    let mut events = Events::new(EventSettings::new().lazy(true));
+    let mut gl = GlGraphics::new(opengl);
+    let mut mpos: [f64; 2] = [0.0; 2];
+
+    while let Some(event) = events.next(&mut window) {
+        if let Some(pos) = event.mouse_cursor_args() {
+            mpos = pos
+        }
+        game_graphic(&mut board, &mut players, mpos, &event, &view, (&mut tree_player_1, &mut tree_player_2));
+        if let Some(args) = event.render_args() {
+            gl.draw(args.viewport(), |context, graphics| {
+                clear(view.get_background_color(), graphics);
+                view.draw(&board, &players, &context, graphics, mpos)
+            });
+        }
     }
 }
