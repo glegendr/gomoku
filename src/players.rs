@@ -25,6 +25,10 @@ impl Player {
         Player {color, player_type, captured: 0}
     }
 
+    pub fn reset(&mut self) {
+        self.captured = 0;
+    }
+
     pub fn get_player_type(&self) -> PlayerType {
         self.player_type
     }
@@ -75,7 +79,13 @@ impl Players {
         }
     }
 
-    pub fn next_player(&mut self) -> () {
+    pub fn reset(&mut self) {
+        self.player1.reset();
+        self.player2.reset();
+        self.current_player = self.player1;
+    }
+
+    pub fn next_player(&mut self) {
         match self.current_player.get_player_color() == self.player1.get_player_color() {
             true => self.current_player = self.player2.clone(),
             _ => self.current_player = self.player1.clone()

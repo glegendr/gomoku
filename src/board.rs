@@ -41,6 +41,10 @@ impl Board {
         }
     }
 
+    pub fn reset(&mut self) {
+        self.board = vec![Tile::Empty; self.get_total_tiles()];
+    }
+
     pub fn get_board(&self) -> &Vec<Tile> {
         &self.board
     }

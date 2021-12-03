@@ -1,7 +1,7 @@
 use crate::board::*;
 use crate::Players;
 use crate::color::{Color};
-use graphics::{Context, Graphics, CircleArc, Line};
+use graphics::*;//::{Context, Graphics, CircleArc, Line};
 
 pub struct View {
     background_color: [f32; 4],
@@ -124,7 +124,7 @@ impl View {
     }
 
     fn draw_stones<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G) {
-        for (i, stone)  in board.get_board().iter().enumerate() {
+        for (i, stone) in board.get_board().iter().enumerate() {
             if *stone == Tile::Color(Color::White) {
                 View::draw_circle(
                     self.white_color(),
@@ -147,6 +147,20 @@ impl View {
                 );
             } 
         }
+    }
+
+    fn draw_buttons<G: Graphics>(&self, context: &Context, graphics: &mut G) {
+        Rectangle::new_round([0.97, 0.89, 0.71, 1.0], 15.0)
+            .draw([50.0, 20.0, 100.0, 50.0], &context.draw_state, context.transform, graphics);
+        Rectangle::new_round([0.97, 0.89, 0.71, 1.0], 15.0)
+            .draw([200.0, 20.0, 100.0, 50.0], &context.draw_state, context.transform, graphics);
+        // text::Text::new_color([0.0, 0.0, 0.0, 1.0], 32).draw(
+        //     "HELLO",
+        //     &mut glyphs,
+        //     &context.draw_state,
+        //     context.transform,
+        //     graphics
+        // );
     }
 
     fn draw_grid<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G) {
@@ -208,11 +222,12 @@ impl View {
             );
         }
         self.draw_stones(board, context, graphics);
+        self.draw_buttons(context, graphics);
     }
 }
 
 
 /*
-            println!("{}", board);
-            println!("{:?}", players);
+    println!("{}", board);
+    println!("{:?}", players);
 */
