@@ -2,35 +2,28 @@ use crate::board::{Board, Tile};
 use crate::color::Color;
 use crate::heuristic::Coordinates;
 
-/* SPECIAL */
-const WEBBBEW_SCORE: i32 = 15000;
-const BBBBB_SCORE: i32 = 150000;
 
-/* 2 */
-const EBBE_SCORE: i32 = 10000;
-const EBBW_SCORE: i32 = 10000; // SPECIAL
-
-/* 3 */
-const EBEBW_SCORE: i32 = 10000;
-const EBEBE_SCORE: i32 = 7500;
-const EBBBW_SCORE: i32 = 35000;
-const EBBBE_SCORE: i32 = 50000;
-
-/* 4 */
-const EBBBBE_SCORE: i32 = 100000;
-const EBBBBW_SCORE: i32 = 80000;
-const EBEBBE_SCORE: i32 = 45000;
-const WBBEBE_SCORE: i32 = 15000; // SPECIAL
-const EBBEBW_SCORE: i32 = 20000;
-const EBEEBE_SCORE: i32 = 7500;
-const EBEEBW_SCORE: i32 = 5000;
-
-/* 5 */
-const EBEBBBE_SCORE: i32 = 80000;
-const EBBEBBE_SCORE: i32 = 75000;
-const EBEEBBE_SCORE: i32 = 25000;
-const EBEBEBE_SCORE: i32 = 20000;
-const EBEEEBE_SCORE: i32 = 7500;
+/* ORDER */
+const BBBBB_SCORE: i32 = ((i32::MAX as f64) * (2.0/3.0)) as i32;
+const EBBBBE_SCORE: i32 = ((BBBBB_SCORE as f64) / 1.5) as i32;
+const EBEBBBE_SCORE: i32 = EBBBBE_SCORE / 2;
+const EBBEBBE_SCORE: i32 = EBEBBBE_SCORE / 3;
+const EBBBBW_SCORE: i32 = EBBEBBE_SCORE / 2;
+const EBBBE_SCORE: i32 = EBBBBW_SCORE / 2;
+const EBEBEBE_SCORE: i32 = EBBBE_SCORE / 4;
+const EBEBBE_SCORE: i32 = EBEBEBE_SCORE / 2;
+const EBEEBBE_SCORE: i32 = EBEBBE_SCORE /3;
+const EBBBW_SCORE: i32 = EBEEBBE_SCORE / 2;
+const WEBBBEW_SCORE: i32 = EBBBW_SCORE / 2;
+const EBBEBW_SCORE: i32 = WEBBBEW_SCORE / 3;
+const WBBEBE_SCORE: i32 = EBBEBW_SCORE / 4;
+const EBEBE_SCORE: i32 = WBBEBE_SCORE / 2;
+const EBBE_SCORE: i32 = ((EBEBE_SCORE as f64) / 1.5) as i32;
+const EBEEBE_SCORE: i32 = EBBE_SCORE / 2;
+const EBEEEBE_SCORE: i32 = EBEEBE_SCORE / 2;
+const EBEEBW_SCORE: i32 = EBEEEBE_SCORE / 4;
+const EBEBW_SCORE: i32 = EBEEBW_SCORE;
+const EBBW_SCORE: i32 = EBEBW_SCORE / 2;
 
 /* O.XXX.O */
 pub fn webbbew(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> Option<i32> { 

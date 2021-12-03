@@ -2,7 +2,7 @@
 name = "gomoku"
 version = "0.1.0"
 authors = ["Gaspard Legendre <glegendr@student.42.fr>", "Lorenzo Jesu <lojesu@student.42.fr>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

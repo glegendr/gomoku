@@ -276,8 +276,8 @@ pub fn position_heuristic(board: &Board, players: &Players, default_color: Color
     let coordinates = Coordinates::new_position(board.get_size(), board.get_input(input));
     let mut eval = 0;
     let current_player_color = players.get_current_player().get_player_color();
-    eval += ((me.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
-    eval -= ((opponent.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
+    eval += ((me.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64) * (1.0 / 3.0)) as i32;
+    eval -= ((opponent.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64) * (1.0 / 3.0)) as i32;
     eval += get_cases(board, add, skip, &coordinates, default_color, current_player_color).0;
     eval += get_cases(board, sub, skip, &coordinates, default_color, current_player_color).0;
     eval += get_cases(board, add, add, &coordinates, default_color, current_player_color).0;

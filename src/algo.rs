@@ -7,6 +7,7 @@ use std::thread;
 use std::fmt;
 
 const MINMAX_DEPTH: usize = 5;
+const MAX_LEAVES: usize = 5;
 
 #[derive(Debug, Clone)]
 pub struct Tree {
@@ -87,16 +88,10 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
                 for child in handle {
                     values.push(child.join().unwrap());
                 }
-                let ret = values.iter().fold((i32::MIN, 0, None, 0), |mut acc, x| {
-                    let new_nb = if x.2.is_some() {
-                        acc.3 + x.2.as_ref().unwrap()._leaves()
-                    } else {
-                        acc.3
-                    };
+                let ret = values.iter().fold((i32::MIN, 0, None), |acc, x| {
                     if x.0 >= acc.0 {
-                        (x.0, x.1, x.2.clone(), new_nb)
+                        (x.0, x.1, x.2.clone())
                     } else {
-                        acc.3 = new_nb;
                         acc
                     }
                 });
@@ -135,7 +130,7 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
     (ret.1, ret.2)
 }
 
-fn play_everything(tree: &mut Tree, default_color: Color) -> &mut Vec<Tree> {
+fn play_everything(tree: &mut Tree, default_color: Color, is_minimax: bool) -> &mut Vec<Tree> {
     let current_player_color = tree.data.1.get_current_player().get_player_color();
     for i in 0..tree.board().get_board().len() {
         let input = tree.board().get_input(i);
@@ -153,25 +148,27 @@ fn play_everything(tree: &mut Tree, default_color: Color) -> &mut Vec<Tree> {
     }
     if current_player_color == default_color {
         tree.children.sort_by(|a, b| b.score.cmp(&a.score));
-        let end = if tree.children.len() > 15 {
-            15
+        let end = if tree.children.len() > MAX_LEAVES {
+            MAX_LEAVES
         } else {
             tree.children.len()
         };
         tree.children = (&tree.children[..end]).to_vec();
-    } else {
+    } else if is_minimax{
         tree.children.sort_by(|a, b| a.score.cmp(&b.score));
+    } else {
+        tree.children.sort_by(|a, b| b.score.cmp(&a.score));
     }
     &mut tree.children
 }
 
 fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default_color: Color, tree: &mut Tree) -> i32 {
     if depth == 0 || tree.board().is_finished(tree.players().get_current_player()).0 || tree.players().is_finished().0 {
-        return heuristic(tree.board(), tree.players(), default_color)
+        return tree.score
     } else if maximizing_player {
         let mut value: i32 = i32::MIN;
         let mut new_alpha = alpha;
-            for mut child in play_everything(tree, default_color) {
+            for mut child in play_everything(tree, default_color, true) {
                 let ret_minimax = minimax(depth - 1, false, new_alpha, beta, default_color, &mut child);
                 value = max(value, ret_minimax);
                 if value >= beta {
@@ -183,7 +180,7 @@ fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default
     } else {
         let mut value: i32 = i32::MAX;
         let mut new_beta = beta;
-            for mut child in play_everything(tree, default_color) {
+            for mut child in play_everything(tree, default_color, true) {
                 let ret_minimax = minimax(depth - 1, true, alpha, new_beta, default_color, &mut child);
                 value = min(value, ret_minimax);
                 if alpha >= value {
@@ -197,10 +194,10 @@ fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default
 
 fn pvs(tree: &mut Tree, depth: usize, mut alpha: i32, beta: i32, color: Color) -> i32 {
     if depth == 0 || tree.board().is_finished(tree.players().get_current_player()).0 || tree.players().is_finished().0 {
-        return heuristic(tree.board(), tree.players(), color)
+        return tree.score
     }
     let mut is_first = true;
-    for mut child in play_everything(tree, color) {
+    for mut child in play_everything(tree, color, false) {
         let mut score;
         if is_first {
             is_first = false;

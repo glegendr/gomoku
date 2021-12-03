@@ -27,7 +27,7 @@ use glutin_window::GlutinWindow;
 use opengl_graphics::{OpenGL, GlGraphics};
 use graphics::{clear};
 
-/*
+
 fn get_human_input(_player_color: Color) -> Input {
     let mut guess = String::new();
     io::stdin()
@@ -41,28 +41,41 @@ fn get_human_input(_player_color: Color) -> Input {
     (vec[0] as usize, vec[1] as usize)
 }
 
-fn game(board: &mut Board, players: &mut Players) {
-    /*
+fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mut Option<Tree>)) -> bool{
+    
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
             println!("BRAVO {:?} \"{}\"", color, color);
-            break;
+            return true;
         },
         ((true, None), _) => {
             println!("DRAW !");
-            break;
+            return true;
         },
         ((true, Some(color)), _) => {
             println!("BRAVO {:?} \"{}\"", color, color);
-            break;
+            return true;
         },
         _ => ()
     };
-    */
+    
     let now = time::Instant::now();
     let input = match players.get_current_player().get_player_type() {
         PlayerType::Human => get_human_input(players.get_current_player().get_player_color()),
-        PlayerType::Bot => get_bot_input(&players, &board),
+        PlayerType::Bot => {
+            match players.get_current_player().get_player_color() {
+                Color::Black => {
+                    let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
+                    *trees.0 = bot_tree;
+                    bot_input
+                },
+                Color::White => {
+                    let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
+                    *trees.1 = bot_tree;
+                    bot_input
+                },
+            }
+        },
     };
     let elapsed_time = now.elapsed();
     println!("Input took {:?}.", elapsed_time);
@@ -70,8 +83,9 @@ fn game(board: &mut Board, players: &mut Players) {
         Ok(_) => players.next_player(),
         Err(e) => println!("{}", e)
     };
+    false
 }
-*/
+
 
 fn get_human_input_graphic<E: GenericEvent>(_player_color: Color, mpos: [f64; 2], event: &E, view: &View) -> Input {
     if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
@@ -102,26 +116,28 @@ fn game_graphic<E: GenericEvent>(board: &mut Board, players: &mut Players, mpos:
         },
         _ => ()
     };
-    let now = time::Instant::now();
     let input = match players.get_current_player().get_player_type() {
         PlayerType::Human => get_human_input_graphic(players.get_current_player().get_player_color(), mpos, event, view),
         PlayerType::Bot => {
-            match players.get_current_player().get_player_color() {
+        let now = time::Instant::now();
+        let ret: (usize, usize);
+        match players.get_current_player().get_player_color() {
                 Color::Black => {
                     let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
                     *trees.0 = bot_tree;
-                    bot_input
+                    ret = bot_input;
                 },
                 Color::White => {
                     let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
                     *trees.1 = bot_tree;
-                    bot_input
+                    ret = bot_input;
                 },
             }
+        let elapsed_time = now.elapsed();
+        println!("Input took {:?}.", elapsed_time);
+        ret
         },
     };
-    let elapsed_time = now.elapsed();
-    println!("Input took {:?}.", elapsed_time);
     if input.0 < board.get_size() && input.1 < board.get_size() {
         match board.add_value(input, players) {
             Ok(_) => players.next_player(),
@@ -154,28 +170,44 @@ fn main() {
         }
     };
 
-    println!("{}", visual);
-    let view = View::new(&board);
-    let opengl = OpenGL::V3_2;
-    let settings = WindowSettings::new("Gomoku", [view.get_window_size(), view.get_window_size()])
-        .graphics_api(opengl)
-        .exit_on_esc(true);
-    let mut window: GlutinWindow = settings.build()
-        .expect("Could not create window");
-    let mut events = Events::new(EventSettings::new().lazy(true));
-    let mut gl = GlGraphics::new(opengl);
-    let mut mpos: [f64; 2] = [0.0; 2];
+    // println!("{}", visual);
 
-    while let Some(event) = events.next(&mut window) {
-        if let Some(pos) = event.mouse_cursor_args() {
-            mpos = pos
-        }
-        game_graphic(&mut board, &mut players, mpos, &event, &view, (&mut tree_player_1, &mut tree_player_2));
-        if let Some(args) = event.render_args() {
-            gl.draw(args.viewport(), |context, graphics| {
-                clear(view.get_background_color(), graphics);
-                view.draw(&board, &players, &context, graphics, mpos)
-            });
+    match visual {
+        true => {
+            let view = View::new(&board);
+            let opengl = OpenGL::V3_2;
+            let settings = WindowSettings::new("Gomoku", [view.get_window_size(), view.get_window_size()])
+                .graphics_api(opengl)
+                .exit_on_esc(true);
+            let mut window: GlutinWindow = settings.build()
+                .expect("Could not create window");
+            let mut events = Events::new(EventSettings::new().lazy(true));
+            let mut gl = GlGraphics::new(opengl);
+            let mut mpos: [f64; 2] = [0.0; 2];
+            while let Some(event) = events.next(&mut window) {
+                if let Some(pos) = event.mouse_cursor_args() {
+                    mpos = pos
+                }
+                game_graphic(&mut board, &mut players, mpos, &event, &view, (&mut tree_player_1, &mut tree_player_2));
+                if let Some(args) = event.render_args() {
+                    gl.draw(args.viewport(), |context, graphics| {
+                        clear(view.get_background_color(), graphics);
+                        view.draw(&board, &players, &context, graphics, mpos)
+                    });
+                }
+            }
+        },
+        _ => {
+            loop {
+                if game(&mut board, &mut players, (&mut tree_player_1, &mut tree_player_2)) {
+                    println!("{}", board);
+                    println!("{:?}", players);
+                    break;
+                }
+                println!("{}", board);
+                println!("{:?}", players);
+            }
+            
         }
     }
 }
