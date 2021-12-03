@@ -75,14 +75,14 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
                     return (finished_tree.input, None)
                 }
                 tree.children.iter().for_each(|x| {
-                    if x.children.len() > 0 {
+                    // if x.children.len() > 0 {
                         let mut new_tree = x.clone();
                         handle.push(thread::spawn(move || {
                             let score = minimax(MINMAX_DEPTH - 1, false, i32::MIN, i32::MAX, color, &mut new_tree);
                             // let score = pvs(&mut new_tree, MINMAX_DEPTH - 1, i32::MIN + 1, i32::MAX, color);
                             return (score, new_tree.input, Some(new_tree))
                         }));
-                    }
+                    // }
                 });
                 let mut values = Vec::new();
                 for child in handle {

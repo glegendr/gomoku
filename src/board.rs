@@ -299,24 +299,24 @@ impl Board {
         let is_capture_disabled: bool = self.get_capture_range() == 0;
         if  i % self.get_size() <= self.get_size() - self.get_alignement_nb() &&
             self.board[i..i + self.get_alignement_nb()].iter().all(|x| *x == *tile) &&
-            (is_capture_disabled || (!captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 + y) as usize, |x, _| x))) {
+            (is_capture_disabled || (captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 + y) as usize, |x, _| x))) {
             return (true, Some(color))
         }
         if  i / self.get_size() <= self.get_size() - self.get_alignement_nb() &&
             self.slice(i, self.get_alignement_nb(), |start, _| start, |_, x| x).iter().all(|x| *x == *tile) &&
-            (is_capture_disabled || (!captured || cannot_be_captured(self, self.get_input(i), color, |x, _| x , |x, y| (x as i32 + y) as usize))) {
+            (is_capture_disabled || (captured || cannot_be_captured(self, self.get_input(i), color, |x, _| x , |x, y| (x as i32 + y) as usize))) {
             return (true, Some(color))
         }
         if  i / self.get_size() <= self.get_size() - self.get_alignement_nb() &&
             i % self.get_size() <= self.get_size() - self.get_alignement_nb() &&
             self.slice(i, self.get_alignement_nb(), |start, x| start + x, |_, x| x).iter().all(|x| *x == *tile) &&
-            (is_capture_disabled || (!captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize))) {
+            (is_capture_disabled || (captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize))) {
             return (true, Some(color))
         }
         if  i / self.get_size() <= self.get_size() - self.get_alignement_nb() &&
             i % self.get_size() >= self.get_alignement_nb() - 1 &&
             self.slice(i, self.get_alignement_nb(), |start, x| start - x, |_, x| x).iter().all(|x| *x == *tile) &&
-            (is_capture_disabled || (!captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize))) {
+            (is_capture_disabled || (captured || cannot_be_captured(self, self.get_input(i), color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize))) {
             return (true, Some(color))
         }
         (false, None)
@@ -363,7 +363,7 @@ fn cannot_be_captured(
                 return false
             } else if !cannot_be_captured_prime(board, (f_x(input.0, i as i32), f_y(input.1, i as i32)), color, |x, _| x, |x, y| (x as i32 + y) as usize) {
                 return false
-            } else if !cannot_be_captured_prime(board, (f_x(input.0, i as i32), f_y(input.1, i as i32)), color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize) {
+            } else if !cannot_be_captured_prime(board, (f_x(input.0, i as i32), f_y(input.1, i as i32)), color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize) {
                 return false
             }
         }
@@ -380,7 +380,7 @@ fn cannot_be_captured_prime(
 ) -> bool {
     let mut vec: Vec<Tile> = vec![board.get(input)];
     for i in 1..=board.get_capture_range() {
-        if f_x(input.0, i as i32) > board.get_size() - 1 || f_y(input.1, i as i32) > board.get_size() - 1 {
+        if f_x(input.0, i as i32) >= board.get_size() || f_y(input.1, i as i32) >= board.get_size() {
             break;
         }
         let tile = board.get((f_x(input.0, i as i32), f_y(input.1, i as i32)));

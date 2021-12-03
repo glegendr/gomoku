@@ -41,7 +41,7 @@ fn get_human_input(_player_color: Color) -> Input {
     (vec[0] as usize, vec[1] as usize)
 }
 
-fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mut Option<Tree>)) -> bool{
+fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mut Option<Tree>), turn_count: &mut usize) -> bool{
     
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
@@ -80,7 +80,11 @@ fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mu
     let elapsed_time = now.elapsed();
     println!("Input took {:?}.", elapsed_time);
     match board.add_value(input, players) {
-        Ok(_) => players.next_player(),
+        Ok(_) => {
+            *turn_count += 1;
+            println!("Turn: {}", *turn_count / 2);
+            players.next_player()
+        },
         Err(e) => println!("{}", e)
     };
     false
@@ -100,19 +104,22 @@ fn get_human_input_graphic<E: GenericEvent>(_player_color: Color, mpos: [f64; 2]
     (usize::MAX, usize::MAX)
 }
 
-fn game_graphic<E: GenericEvent>(board: &mut Board, players: &mut Players, mpos: [f64; 2], event: &E, view: &View, trees: (&mut Option<Tree>, &mut Option<Tree>)) {
+fn game_graphic<E: GenericEvent>(board: &mut Board, players: &mut Players, mpos: [f64; 2], event: &E, view: &View, trees: (&mut Option<Tree>, &mut Option<Tree>), turn_count: &mut usize) -> bool {
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
             println!("BRAVO {:?} \"{}\"", color, color);
-            process::exit(1);
+            // process::exit(1);
+            return true
         },
         ((true, None), _) => {
             println!("DRAW !");
-            process::exit(1);
+            return true
+            // process::exit(1);
         },
         ((true, Some(color)), _) => {
             println!("BRAVO {:?} \"{}\"", color, color);
-            process::exit(1);
+            return true
+            // process::exit(1);    
         },
         _ => ()
     };
@@ -140,19 +147,22 @@ fn game_graphic<E: GenericEvent>(board: &mut Board, players: &mut Players, mpos:
     };
     if input.0 < board.get_size() && input.1 < board.get_size() {
         match board.add_value(input, players) {
-            Ok(_) => players.next_player(),
+            Ok(_) => {
+                *turn_count += 1;
+                println!("Turn: {}", *turn_count / 2);
+                players.next_player()
+            },
             Err(e) => println!("{}", e)
         }
     };
+    false
 }
 
 fn main() {
     let mut args: Vec<String> = env::args().collect();
     let mut board: Board;
     let player1 = Player::new(Color::Black, PlayerType::Human);
-    let player2 = Player::new(Color::White, PlayerType::Bot);
-    let mut tree_player_1: Option<Tree> = None;
-    let mut tree_player_2: Option<Tree> = None;
+    let player2 = Player::new(Color::White, PlayerType::Human);
     let mut players: Players;
     let visual: bool;
     match leakser(&mut args[1..]) {
@@ -169,11 +179,13 @@ fn main() {
             process::exit(1);
         }
     };
-
-    // println!("{}", visual);
+    let mut tree_player_1: Option<Tree> = None;
+    let mut tree_player_2: Option<Tree> = None;
+    let mut turn_count: usize = 1;
 
     match visual {
         true => {
+            let mut finished = false;
             let view = View::new(&board);
             let opengl = OpenGL::V3_2;
             let settings = WindowSettings::new("Gomoku", [view.get_window_size(), view.get_window_size()])
@@ -188,7 +200,9 @@ fn main() {
                 if let Some(pos) = event.mouse_cursor_args() {
                     mpos = pos
                 }
-                game_graphic(&mut board, &mut players, mpos, &event, &view, (&mut tree_player_1, &mut tree_player_2));
+                if !finished {
+                    finished = game_graphic(&mut board, &mut players, mpos, &event, &view, (&mut tree_player_1, &mut tree_player_2), &mut turn_count);
+                }
                 if let Some(args) = event.render_args() {
                     gl.draw(args.viewport(), |context, graphics| {
                         clear(view.get_background_color(), graphics);
@@ -199,7 +213,7 @@ fn main() {
         },
         _ => {
             loop {
-                if game(&mut board, &mut players, (&mut tree_player_1, &mut tree_player_2)) {
+                if game(&mut board, &mut players, (&mut tree_player_1, &mut tree_player_2), &mut turn_count) {
                     println!("{}", board);
                     println!("{:?}", players);
                     break;
