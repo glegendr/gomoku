@@ -162,7 +162,7 @@ fn main() {
     let mut args: Vec<String> = env::args().collect();
     let mut board: Board;
     let player1 = Player::new(Color::Black, PlayerType::Human);
-    let player2 = Player::new(Color::White, PlayerType::Human);
+    let player2 = Player::new(Color::White, PlayerType::Bot);
     let mut players: Players;
     let visual: bool;
     match leakser(&mut args[1..]) {

@@ -9,14 +9,16 @@ pub type Input = (usize, usize);
 #[derive(PartialEq, Clone, Debug, Copy, Eq, Ord, PartialOrd, Hash)]
 pub enum Tile {
     Color(Color),
-    Empty
+    Empty,
+    OutOfBounds
 }
 
 impl fmt::Display for Tile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Tile::Empty =>  write!(f, "."),
-            Tile::Color(color) => write!(f, "{}", color)
+            Tile::Color(color) => write!(f, "{}", color),
+            Tile::OutOfBounds => write!(f, ""),
         }
     }
 }
@@ -403,7 +405,7 @@ fn cannot_be_captured_prime(
         vec.push(tile);
     }
     if vec.len() < 2 {
-        return false
+        return true
     }
     let mut sorted = vec![vec.pop().unwrap(), *vec.get(0).unwrap()];
     sorted.sort();
