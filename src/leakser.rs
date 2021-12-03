@@ -3,6 +3,16 @@ const CAPTURED_NB: usize = 10;
 const CAPTURE_RANGE: usize = 2;
 const ALIGNEMENT_NB: usize = 5;
 
+const MORPION_S: usize = 3;
+const MORPION_C: usize = 1;
+const MORPION_R: usize = 0;
+const MORPION_A: usize = 3;
+
+const TENTEN_S: usize = 10;
+const TENTEN_C: usize = 10;
+const TENTEN_R: usize = 2;
+const TENTEN_A: usize = 5;
+
 use crate::error::{FlagError};
 use crate::parser::{check_flags, check_args, check_numbers};
 
@@ -61,7 +71,39 @@ fn check_rules(flags: &mut [String]) -> Result<(), FlagError> {
 }
 
 
+fn morpion_rule(flags: &mut [String]) -> bool {
+    for flag in flags.iter() {
+        if flag == "--morpion" {
+            return true
+        }
+    }
+   false 
+}
+
+
+fn tenten_rule(flags: &mut [String]) -> bool {
+    for flag in flags.iter() {
+        if flag == "--tenten" {
+            return true
+        }
+    }
+   false 
+}
+
+
+fn special_rule(flags: &mut [String]) -> Result<(usize, usize, usize, usize), FlagError> {
+    if morpion_rule(flags) == true {
+        return Ok((MORPION_S, MORPION_C, MORPION_R, MORPION_A))
+    }
+    if tenten_rule(flags) == true {
+        return Ok((TENTEN_S, TENTEN_C, TENTEN_R, TENTEN_A))
+    }
+    Err(FlagError::NoSpecialRule)
+}
+
+
 pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, bool), FlagError> {
+    let visual: bool = get_v_flag(flags);
     if flags.len() > 0 { 
         if flags[0] == "main.rs" {
             flags = &mut flags[1..];
@@ -80,8 +122,11 @@ pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, 
         if !check_flags(flags) {
             return Err(FlagError::WrongFlag)
         }
+        match special_rule(flags) {
+            Ok((s, c, r, a)) => return Ok((s, c, r, a, visual)),
+            _ => ()
+        }
     }
-    let visual: bool = get_v_flag(flags);
     let board_length = get_map_flag(flags, "-s", "--size", BOARD_LENGTH);
     let captured_nb = get_map_flag(flags, "-c", "--captured", CAPTURED_NB);
     let capture_range = get_map_flag(flags, "-r", "--range", CAPTURE_RANGE);
@@ -99,15 +144,17 @@ pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, 
 
 
 fn print_helper() {
-    println!("USAGE: cargo run -- [OPTION] [VALUE]\n");
-    println!("VALUE is a positif real number. For more information check\nrules with \"cargo run -- --rules\"\n");
+    println!("USAGE: cargo run --release -- [OPTION]\n");
     println!("OPTIONS:");
-    println!("\t-s, --size\t\tsize of gomoku\'s board");
-    println!("\t-c, --captured\t\tnumber of stones to capture to win");
-    println!("\t-r, --range\t\trange used for capture opponent\'s stones");
-    println!("\t-a, --alignement\tnumber of stones to align for win");
-    println!("\t    --rules\t\tdisplay gomoku\'s rules");
-    println!("\t-h, --help\t\tdisplay help information");
+    println!("\t-s, --size <Value>\t\tsize of gomoku\'s board");
+    println!("\t-c, --captured <Value>\t\tnumber of stones to capture to win");
+    println!("\t-r, --range <Value>\t\trange used for capture opponent\'s stones");
+    println!("\t-a, --alignement <Value>\tnumber of stones to align for win");
+    println!("\t-v, --visual\t\t\tOutput is a graphical window");
+    println!("\t    --morpion\t\t\tSet value for a morpion game");
+    println!("\t    --tenten\t\t\tSet value with a ten\'s map");
+    println!("\t    --rules\t\t\tdisplay gomoku\'s rules");
+    println!("\t-h, --help\t\t\tdisplay help information");
 }
 
 

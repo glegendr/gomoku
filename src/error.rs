@@ -18,6 +18,7 @@ pub enum FlagError {
     AlignementTooSmall,
     MapTooSmall,
     CannotAssignZero,
+    NoSpecialRule,
     PrintRules,
     PrintHelper
 }
@@ -44,6 +45,7 @@ impl fmt::Display for FlagError {
             FlagError::AlignementTooSmall => write!(f, "Alignement is too small"),
             FlagError::MapTooSmall => write!(f, "Map is too small"),
             FlagError::CannotAssignZero => write!(f, "Cannot assign value at zero"),
+            FlagError::NoSpecialRule => write!(f, ""),
             FlagError::PrintRules => write!(f, ""),
             FlagError::PrintHelper => write!(f, "")
         }

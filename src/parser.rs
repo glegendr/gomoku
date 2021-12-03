@@ -36,7 +36,6 @@ fn check_map_flag_exist(flag: &str) -> bool {
         "-c", "--captured",
         "-r", "--range",
         "-a", "--alignement",
-        "-v", "--visual"
     ];
     if lst_flags.iter().any(|x| *x == flag) {
         return true;
@@ -47,7 +46,9 @@ fn check_map_flag_exist(flag: &str) -> bool {
 
 fn check_true_false_flag_exist(flag: &str) -> bool {
     let lst_flags: Vec<&str> = vec![
-        "-v", "--visual"
+        "-v", "--visual",
+        "--morpion",
+        "--tenten"
     ];
     if lst_flags.iter().any(|x| *x == flag) {
         return true;
