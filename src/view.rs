@@ -72,12 +72,20 @@ impl View {
         self.imprecision
     }
 
-    fn white_color(&self) -> [f32; 4] {
-        [1.0, 1.0, 1.0, 1.0]
+    pub fn white_color(&self, transparency: bool) -> [f32; 4] {
+        if transparency {
+            [0.75, 0.75, 0.75, 1.0]
+        } else {
+            [1.0, 1.0, 1.0, 1.0]
+        }
     }
 
-    fn black_color(&self) -> [f32; 4] {
-        [0.0, 0.0, 0.0, 1.0]
+    pub fn black_color(&self, transparency: bool) -> [f32; 4] {
+        if transparency {
+            [0.10, 0.10, 0.10, 1.0]
+        } else {
+            [0.0, 0.0, 0.0, 1.0]
+        }
     }
 
     fn circle_at_center(&self, input: Input) -> [f64; 4] {
@@ -123,44 +131,40 @@ impl View {
             );
     }
 
-    fn draw_stones<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G) {
+    pub fn draw_stone<G: Graphics>(&self, context: &Context, graphics: &mut G, color: [f32; 4], position: [f64; 4], size: f64) {
+        View::draw_circle(
+            color,
+            size / 2.0,
+            self.get_circle_start(),
+            self.get_circle_end(),
+            position,
+            context,
+            graphics
+        );
+    }
+
+    fn draw_stones<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G, players: &Players, input: Option<&Input>, finished: bool) {
+        let last_played: usize = match input {
+            Some(x) => board.from_input(*x),
+            None => usize::MAX
+        };
         for (i, stone) in board.get_board().iter().enumerate() {
-            if *stone == Tile::Color(Color::White) {
-                View::draw_circle(
-                    self.white_color(),
-                    self.get_stone_size() / 2.0,
-                    self.get_circle_start(),
-                    self.get_circle_end(),
-                    self.circle_at_center(board.get_input(i)),
-                    context,
-                    graphics
-                );
-            } else if *stone == Tile::Color(Color::Black) {
-                View::draw_circle(
-                    self.black_color(),
-                    self.get_stone_size() / 2.0,
-                    self.get_circle_start(),
-                    self.get_circle_end(),
-                    self.circle_at_center(board.get_input(i)),
-                    context,
-                    graphics
-                );
-            } 
+            if let Tile::Color(color) = *stone {
+                match color {
+                    Color::Black => self.draw_stone(context, graphics, self.black_color(i == last_played), self.circle_at_center(board.get_input(i)), self.get_stone_size()),
+                    Color::White => self.draw_stone(context, graphics, self.white_color(i == last_played), self.circle_at_center(board.get_input(i)), self.get_stone_size())
+                }
+            } else if board.check_add_value(board.get_input(i), players) != Ok(()) && !finished {
+                self.draw_stone(context, graphics, [0.67, 0.19, 0.06, 1.0], self.circle_at_center(board.get_input(i)), self.get_stone_size())
+            }
         }
     }
 
     fn draw_buttons<G: Graphics>(&self, context: &Context, graphics: &mut G) {
-        Rectangle::new_round([0.97, 0.89, 0.71, 1.0], 15.0)
+        Rectangle::new_round([0.97, 0.89, 0.71, 0.75], 15.0)
             .draw([50.0, 20.0, 100.0, 50.0], &context.draw_state, context.transform, graphics);
-        Rectangle::new_round([0.97, 0.89, 0.71, 1.0], 15.0)
+        Rectangle::new_round([0.97, 0.89, 0.71, 0.75], 15.0)
             .draw([200.0, 20.0, 100.0, 50.0], &context.draw_state, context.transform, graphics);
-        // text::Text::new_color([0.0, 0.0, 0.0, 1.0], 32).draw(
-        //     "HELLO",
-        //     &mut glyphs,
-        //     &context.draw_state,
-        //     context.transform,
-        //     graphics
-        // );
     }
 
     fn draw_grid<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G) {
@@ -168,7 +172,7 @@ impl View {
             let x_axe: f64 = i as f64 * self.get_cell_size() + self.get_cell_size() / 2.0 + self.get_grid_start();
             if x_axe < self.get_grid_end() {
                 View::draw_line(
-                    self.black_color(),
+                    self.black_color(false),
                     self.grid_thickness,
                     [
                         x_axe,
@@ -185,7 +189,7 @@ impl View {
             let y_axe: f64 = i as f64 * self.get_cell_size() + self.get_cell_size() / 2.0 + self.get_grid_start();
             if y_axe < self.get_grid_end() {
                 View::draw_line(
-                    self.black_color(),
+                    self.black_color(false),
                     self.grid_thickness,
                     [
                         self.get_grid_start(),
@@ -200,14 +204,14 @@ impl View {
         }
     }
 
-    pub fn draw<G: Graphics>(&self, board: &Board, players: &Players, context: &Context, graphics: &mut G, mpos: [f64; 2]) {
+    pub fn draw<G: Graphics>(&self, board: &Board, players: &Players, context: &Context, graphics: &mut G, mpos: [f64; 2], finished: bool, last_input: Option<&Input>) {
         let color = match players.get_current_player().get_player_color() {
-            Color::Black => self.black_color(),
-            _ => self.white_color()
+            Color::Black => self.black_color(false),
+            _ => self.white_color(false)
         };
         self.draw_grid(board, context, graphics);
         if mpos[0] > self.get_grid_start() && mpos[0] < self.get_grid_end() - self.get_imprecision()
-            && mpos[1] > self.get_grid_start() && mpos[1] < self.get_grid_end() - self.get_imprecision() {
+            && mpos[1] > self.get_grid_start() && mpos[1] < self.get_grid_end() - self.get_imprecision() && !finished {
             View::draw_circle(
                 color,
                 self.get_stone_size() / 2.0,
@@ -221,8 +225,11 @@ impl View {
                 graphics
             );
         }
-        self.draw_stones(board, context, graphics);
+        self.draw_stones(board, context, graphics, players, last_input, finished);
         self.draw_buttons(context, graphics);
+        // self.draw_stone(context, graphics, self.black_color(false), [350.0, 45.0, 10.0, 10.0]);
+        // self.draw_stone(context, graphics, self.white_color(false), [450.0, 45.0, 10.0, 10.0]);
+        // self.draw_stone(context, graphics, Color::White, [100.0, 100.0, 100.0, 100.0])
     }
 }
 

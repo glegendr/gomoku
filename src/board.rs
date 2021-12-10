@@ -61,6 +61,10 @@ impl Board {
         self.capture_range
     }
 
+    pub fn from_input(&self, input: Input) -> usize {
+        input.0 + input.1 * self.get_size()
+    }
+
     pub fn get_input(&self, i: usize) -> Input {
         (i % self.get_size(), i / self.get_size())
     }

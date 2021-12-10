@@ -1,6 +1,6 @@
 use std::{io, time, env, process};
 mod board;
-use board::{Board, Input, Tile};
+use board::{Board, Input};
 mod error;
 use error::{FlagError};
 mod color;
@@ -27,6 +27,10 @@ use glutin_window::GlutinWindow;
 use opengl_graphics::{OpenGL, GlGraphics};
 use graphics::{clear};
 
+use opengl_graphics::GlyphCache;
+use opengl_graphics::*;
+use std::path::Path;
+use graphics::*;
 
 fn get_human_input(_player_color: Color) -> Input {
     let mut guess = String::new();
@@ -104,26 +108,27 @@ fn get_human_input_graphic<E: GenericEvent>(_player_color: Color, mpos: [f64; 2]
     (usize::MAX, usize::MAX)
 }
 
-fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2], event: &E, view: &View, trees: (&mut Option<Tree>, &mut Option<Tree>), turn_count: &mut usize) -> (bool, Option<(Board, Players)>) {
+fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2], event: &E, view: &View, trees: (&Option<Tree>, &Option<Tree>), turn_count: &mut usize) -> (bool, Option<(Board, Players, (Option<Tree>, Option<Tree>))>, Option<Input>) {
     let mut option_ret = None;
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
             println!("BRAVO {:?} \"{}\"", color, color);
             // process::exit(1);
-            return (true, None)
+            return (true, None, None)
         },
         ((true, None), _) => {
             println!("DRAW !");
-            return (true, None)
+            return (true, None, None)
             // process::exit(1);
         },
         ((true, Some(color)), _) => {
             println!("BRAVO {:?} \"{}\"", color, color);
-            return (true, None)
+            return (true, None, None)
             // process::exit(1);    
         },
         _ => ()
     };
+    let mut new_trees: (Option<Tree>, Option<Tree>) = (None, None);
     let input = match players.get_current_player().get_player_type() {
         PlayerType::Human => get_human_input_graphic(players.get_current_player().get_player_color(), mpos, event, view),
         PlayerType::Bot => {
@@ -132,12 +137,12 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
         match players.get_current_player().get_player_color() {
                 Color::Black => {
                     let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
-                    *trees.0 = bot_tree;
+                    new_trees.0 = bot_tree;
                     ret = bot_input;
                 },
                 Color::White => {
                     let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
-                    *trees.1 = bot_tree;
+                    new_trees.1 = bot_tree;
                     ret = bot_input;
                 },
             }
@@ -154,12 +159,12 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
                 *turn_count += 1;
                 println!("Turn: {}", *turn_count / 2);
                 new_players.next_player();
-                option_ret = Some((new_board, new_players));
+                option_ret = Some((new_board, new_players, new_trees));
             },
             Err(e) => println!("{}", e)
         }
     };
-    (false, option_ret)
+    (false, option_ret, Some(input))
 }
 
 fn get_mut_last<'a, T>(list: &'a mut Vec<T>) -> &'a mut T {
@@ -170,6 +175,11 @@ fn get_mut_last<'a, T>(list: &'a mut Vec<T>) -> &'a mut T {
 fn get_last<'a, T>(list: &'a Vec<T>) -> &'a T {
     let len = list.len() - 1;
     list.get(len).unwrap()
+}
+
+fn get_last_protected<'a, T>(list: &'a Vec<T>) -> Option<&'a T> {
+    let len = list.len() - 1;
+    list.get(len)
 }
 
 // fn push_before_playing(boards: &mut Vec<Board>, players: &mut Vec<Players>) {
@@ -198,8 +208,8 @@ fn main() {
             process::exit(1);
         }
     };
-    let mut tree_player_1: Option<Tree> = None;
-    let mut tree_player_2: Option<Tree> = None;
+    let mut tree_player_1: Vec<Option<Tree>> = vec![None];
+    let mut tree_player_2: Vec<Option<Tree>> = vec![None];
     let mut turn_count: usize = 1;
 
     match visual {
@@ -215,6 +225,12 @@ fn main() {
             let mut events = Events::new(EventSettings::new().lazy(true));
             let mut gl = GlGraphics::new(opengl);
             let mut mpos: [f64; 2] = [0.0; 2];
+            let ref mut arrows_glyph = GlyphCache::new("assets/arrows.ttf", (), TextureSettings::new()).unwrap();
+            let ref mut text_glyph = GlyphCache::new("assets/AlegreyaSansSC-ExtraBold.ttf", (), TextureSettings::new()).unwrap();
+            let bravo = Texture::from_path(&Path::new("./assets/bravo.png"), &TextureSettings::new()).unwrap();
+            let robot_black = Texture::from_path(&Path::new("./assets/robot_50.png"), &TextureSettings::new()).unwrap();
+            let robot_white= Texture::from_path(&Path::new("./assets/robot_50_white.png"), &TextureSettings::new()).unwrap();
+            let mut last_input: Vec<Input> = Vec::new();
             while let Some(event) = events.next(&mut window) {
                 if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
                     if mpos[0] > 50.0 && mpos[0] < 150.0
@@ -225,47 +241,133 @@ fn main() {
                             new_players.reset();
                             board = vec![new_board];
                             players = vec![new_players];
-                            tree_player_1 = None;
-                            tree_player_2 = None;
+                            last_input = vec![];
+                            tree_player_1 = vec![None];
+                            tree_player_2 = vec![None];
                             turn_count = 1;
                             finished = false;
                     } else if mpos[0] > 200.0 && mpos[0] < 300.0
                         && mpos[1] > 20.0 && mpos[1] < 70.0 {
-                            tree_player_1 = None;
-                            tree_player_2 = None;
-                            board = (&board[..board.len() - 2]).to_vec();
-                            players = (&players[..players.len() - 2]).to_vec();
-                            turn_count -= 2;
-                            finished = false;
-                    }
+                            if turn_count > 1 && get_last(&players).get_player(get_last(&players).get_current_player().get_player_color().get_inverse_color()).get_player_type() == PlayerType::Human {
+                                if tree_player_1.len() > 1 {
+                                    tree_player_1 = (&tree_player_1[..tree_player_1.len() - 1]).to_vec();
+                                }
+                                if tree_player_2.len() > 1 {
+                                    tree_player_2 = (&tree_player_2[..tree_player_2.len() - 1]).to_vec();
+                                }
+                                board = (&board[..board.len() - 1]).to_vec();
+                                last_input = (&last_input[..last_input.len() - 1]).to_vec();
+                                players = (&players[..players.len() - 1]).to_vec();
+                                turn_count -= 1;
+                                finished = false;
+                            } else if turn_count > 2 {
+                                if tree_player_1.len() > 1 {
+                                    tree_player_1 = (&tree_player_1[..tree_player_1.len() - 1]).to_vec();
+                                }
+                                if tree_player_2.len() > 1 {
+                                    tree_player_2 = (&tree_player_2[..tree_player_2.len() - 1]).to_vec();
+                                }
+                                board = (&board[..board.len() - 2]).to_vec();
+                                last_input = (&last_input[..last_input.len() - 2]).to_vec();
+                                players = (&players[..players.len() - 2]).to_vec();
+                                turn_count -= 2;
+                                finished = false;
+                            }
+                    } else if mpos[0] > 335.0 && mpos[0] < 375.0
+                        && mpos[1] > 40.0 && mpos[1] < 90.0 {
+                        get_mut_last(&mut players).change_player_type(Color::Black);
+                    } else if mpos[0] > 435.0 && mpos[0] < 475.0
+                        && mpos[1] > 40.0 && mpos[1] < 90.0 {
+                            get_mut_last(&mut players).change_player_type(Color::White);
+                        }
                 }
                 if let Some(pos) = event.mouse_cursor_args() {
                     mpos = pos
                 }
                 if !finished {
-                    //push_before_playing(&mut board, &mut players, (&mut tree_player_1, &mut tree_player_2));
-                    //(finished, game_new_state) =
-                    match game_graphic(get_last(&board), get_last(&players), mpos, &event, &view, (&mut tree_player_1, &mut tree_player_2), &mut turn_count) {
-                        (x, Some((new_board, new_players))) => {
+                    match game_graphic(get_last(&board), get_last(&players), mpos, &event, &view, (get_last(&tree_player_1), get_last(&tree_player_2)), &mut turn_count) {
+                        (x, Some((new_board, new_players, (new_tree_1, new_tree_2))), Some(input)) => {
                             finished = x;
                             board.push(new_board);
                             players.push(new_players);
+                            last_input.push(input);
+                            if let Some(tree_1) = new_tree_1 {
+                                tree_player_1.push(Some(tree_1));
+                            }
+                            if let Some(tree_2) = new_tree_2 {
+                                tree_player_2.push(Some(tree_2));
+                            }
                         }
-                        (x, _) => finished = x
+                        (x, _, _) => finished = x
                     }
-                    // match 
                 }
                 if let Some(args) = event.render_args() {
                     gl.draw(args.viewport(), |context, graphics| {
                         clear(view.get_background_color(), graphics);
-                        view.draw(get_mut_last(&mut board), get_mut_last(&mut players), &context, graphics, mpos)
+                        view.draw(get_last(&board), get_last(&players), &context, graphics, mpos, finished, get_last_protected(&last_input));
+                        text::Text::new_color([0.0, 0.0, 0.0, 1.0], 32).draw(
+                            "M", // Reset
+                            arrows_glyph,
+                            &context.draw_state,
+                            context.transform
+                                .trans(120.0, 30.0)
+                                .flip_hv(),
+                            graphics
+                        ).unwrap();
+                        text::Text::new_color([0.0, 0.0, 0.0, 1.0], 32).draw(
+                            "P", // Undo
+                            arrows_glyph,
+                            &context.draw_state,
+                            context.transform
+                                .trans(267.0, 20.0)
+                                .flip_hv()
+                                .rot_deg(-25.0),
+                            graphics
+                        ).unwrap();
+                        text::Text::new_color([0.0, 0.0, 0.0, 1.0], 32).draw(
+                            &get_last(&players).get_player(Color::Black).get_player_captured().to_string(),
+                            text_glyph,
+                            &context.draw_state,
+                            context.transform
+                                .trans(390.0, 60.0),
+                            graphics
+                        ).unwrap();
+                        text::Text::new_color([0.0, 0.0, 0.0, 1.0], 32).draw(
+                            &get_last(&players).get_player(Color::White).get_player_captured().to_string(),
+                            text_glyph,
+                            &context.draw_state,
+                            context.transform
+                                .trans(490.0, 60.0),
+                            graphics
+                        ).unwrap();
+                        text::Text::new_color([0.0, 0.0, 0.0, 1.0], 32).draw(
+                            &format!("[Turn: {}]", turn_count / 2),
+                            text_glyph,
+                            &context.draw_state,
+                            context.transform
+                                .trans(650.0, 60.0),
+                            graphics
+                        ).unwrap();
+                        if finished {
+                            image(&bravo, context.transform.trans(20.0, 65.0), graphics);
+                        }
+                        if get_last(&players).get_player(Color::Black).get_player_type() == PlayerType::Human {
+                            view.draw_stone(&context, graphics, view.black_color(false), [350.0, 40.0, 15.0, 15.0], 25.0); // 13
+                        } else {
+                            image(&robot_black, context.transform.trans(330.0, 20.0), graphics);
+                        }
+                        if get_last(&players).get_player(Color::White).get_player_type() == PlayerType::Human {
+                            view.draw_stone(&context, graphics, view.white_color(false), [450.0, 40.0, 15.0, 15.0], 25.0); // 26.73
+                        } else {
+                            image(&robot_white, context.transform.trans(430.0, 20.0), graphics);
+                        }
                     });
                 }
             }
         },
         _ => {
             loop {
-                if game(get_mut_last(&mut board), get_mut_last(&mut players), (&mut tree_player_1, &mut tree_player_2), &mut turn_count) {
+                if game(get_mut_last(&mut board), get_mut_last(&mut players), (get_mut_last(&mut tree_player_1), get_mut_last(&mut tree_player_2)), &mut turn_count) {
                     println!("{}", get_last(&board));
                     println!("{:?}", get_last(&players));
                     break;

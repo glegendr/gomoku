@@ -29,6 +29,13 @@ impl Player {
         self.captured = 0;
     }
 
+    fn change_player_type(&mut self) {
+        match self.player_type {
+            PlayerType::Bot => self.player_type = PlayerType::Human,
+            _ => self.player_type = PlayerType::Bot,
+        }
+    }
+
     pub fn get_player_type(&self) -> PlayerType {
         self.player_type
     }
@@ -111,6 +118,16 @@ impl Players {
 
     pub fn get_current_player(&self) -> Player {
         self.current_player
+    }
+
+    pub fn change_player_type(&mut self, color: Color) {
+        match color {
+            Color::Black => self.player1.change_player_type(),
+            _ => self.player2.change_player_type()
+        }
+        if self.current_player.get_player_color() == color {
+            self.current_player.change_player_type();
+        }
     }
 
     pub fn get_captured_nb(&self) -> usize {
