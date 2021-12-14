@@ -16,6 +16,68 @@ const TENTEN_A: usize = 5;
 use crate::error::{FlagError};
 use crate::parser::{check_flags, check_args, check_numbers};
 
+struct MapFlag {
+    lst_flag: Vec<String>,
+    size: usize,
+    captured_nb: usize,
+    range: usize,
+    alignement_nb: usize
+}
+
+impl MapFlag {
+    fn new() -> MapFlag {
+        MapFlag {
+            lst_flag: vec![
+                "-s".to_string(), "--size".to_string(),
+                "-c".to_string(), "--captured".to_string(),
+                "-r".to_string(), "--range".to_string(),
+                "-a".to_string(), "--alignement".to_string()
+            ],
+            size: BOARD_LENGTH,
+            captured_nb: CAPTURED_NB,
+            range: CAPTURE_RANGE,
+            alignement_nb: ALIGNEMENT_NB
+        }
+    }
+
+    fn get_lst_flag(&self) -> &Vec<String> {
+        &self.lst_flag
+    }
+
+    fn get_size(&self) -> usize {
+        self.size
+    }
+
+    fn get_captured_nb(&self) -> usize {
+        self.captured_nb
+    }
+
+    fn get_range(&self) -> usize {
+        self.range
+    }
+
+    fn get_alignement_nb(&self) -> usize {
+        self.alignement_nb
+    }
+
+    fn get_flag(&mut self, flag: &str, value: usize) {
+        match flag {
+            "-s" | "--size" => self.size = value,
+            "-c" | "--captured" => self.captured_nb = value,
+            "-r" | "--range" => self.range = value,
+            "-a" | "--alignement" => self.alignement_nb = value,
+            _ => ()
+        }
+    }
+
+    fn parse(&self, flag: &str) -> bool {
+        if self.get_lst_flag().iter().any(|x| *x == flag) {
+           return true;
+        }
+        false
+    }
+}
+/*
 fn get_map_flag(flags: &[String], f1: &str, f2: &str, ret: usize) -> usize {
     for (i, x) in flags.iter().enumerate() {
         match x.parse::<usize>() {
@@ -48,7 +110,6 @@ fn get_v_flag(flags: &mut [String]) -> bool {
    false
 }
 
-
 fn check_helper(flags: &mut [String]) -> Result<(), FlagError> {
     for flag in flags.iter() {
         if flag == "-h" || flag == "--help" {
@@ -69,7 +130,6 @@ fn check_rules(flags: &mut [String]) -> Result<(), FlagError> {
     }
     Ok(())
 }
-
 
 fn morpion_rule(flags: &mut [String]) -> bool {
     for flag in flags.iter() {
@@ -101,8 +161,33 @@ fn special_rule(flags: &mut [String]) -> Result<(usize, usize, usize, usize), Fl
     Err(FlagError::NoSpecialRule)
 }
 
-
+*/
 pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, bool), FlagError> {
+    let mut i = 0;
+    let mut map_flag: MapFlag = MapFlag::new();
+    while i < flags.len() {
+        if map_flag.parse(flags[i].as_str()) == true {
+            if i >= flags.len() {
+                return Err(FlagError::ErrorTypo);
+            }
+            match flags[i + 1].parse::<usize>() {
+                Ok(value) => map_flag.get_flag(flags[i].as_str(), value),
+                _ => return Err(FlagError::ErrorTypo)
+            }
+            i += 1;
+        } else {
+            return Err(FlagError::WrongFlag)
+        }
+        i += 1;
+    }
+    Ok((
+        map_flag.get_size(),
+        map_flag.get_captured_nb(),
+        map_flag.get_range(),
+        map_flag.get_alignement_nb(),
+        false
+    ))
+    /*
     let visual: bool = get_v_flag(flags);
     if flags.len() > 0 { 
         if flags[0] == "main.rs" {
@@ -140,6 +225,7 @@ pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, 
         Err(e) => Err(e),
         _ => Ok((board_length, captured_nb, capture_range, alignement_nb, visual))
     }
+    */
 }
 
 

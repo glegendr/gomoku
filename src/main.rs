@@ -213,13 +213,12 @@ fn main() {
         },
         _ => {
             loop {
+                println!("{}", board);
                 if game(&mut board, &mut players, (&mut tree_player_1, &mut tree_player_2), &mut turn_count) {
                     println!("{}", board);
                     println!("{:?}", players);
                     break;
                 }
-                println!("{}", board);
-                println!("{:?}", players);
             }
             
         }
