@@ -95,17 +95,21 @@ impl Board {
     }
 
     pub fn is_finished(&self, player: Player) -> (bool, Option<Color>) {
+        let mut winner = (false, None);
+        if !self.board.iter().any(|x| *x == Tile::Empty) {
+            winner = (true, None)
+        }
         for i in 0..self.board.len() {
             if let Tile::Color(color) = self.board[i] {
-                if let (true, Some(winner)) = self.check_victory(i, color, &self.board[i], color == player.get_player_color()) {
-                    return (true, Some(winner))
+                if let (true, Some(actual_winner)) = self.check_victory(i, color, &self.board[i], color == player.get_player_color()) {
+                    winner = (true, Some(actual_winner));
+                    if actual_winner == player.get_player_color() {
+                        return winner
+                    }
                 }
             }
         }
-        if !self.board.iter().any(|x| *x == Tile::Empty) {
-            return (true, None)
-        }
-        (false, None)
+        winner
     }
 
     pub fn _get_free_three(&self, input: Input, color: Color) -> u8 {

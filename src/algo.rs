@@ -161,12 +161,12 @@ fn play_everything(tree: &mut Tree, default_color: Color, is_minimax: bool, max_
     if current_player_color == default_color {
         tree.children.sort_by(|a, b| b.score.cmp(&a.score));
         let end = if tree.children.len() > max_leaves {
-            max_leaves
+            max_leaves + 1
         } else {
             tree.children.len()
         };
         tree.children = (&tree.children[..end]).to_vec();
-    } else if is_minimax{
+    } else if is_minimax {
         tree.children.sort_by(|a, b| a.score.cmp(&b.score));
     } else {
         tree.children.sort_by(|a, b| b.score.cmp(&a.score));

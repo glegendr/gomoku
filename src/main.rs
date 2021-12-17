@@ -1,5 +1,5 @@
 use std::{io, time, env, process};
-use std::time::{Duration, Instant};
+use std::time::{Duration};
 mod board;
 use board::{Board, Input};
 mod error;
@@ -114,18 +114,15 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
             println!("BRAVO {:?} \"{}\"", color, color);
-            // process::exit(1);
             return (Some(Some(color)), None, None)
         },
         ((true, None), _) => {
             println!("DRAW !");
             return (Some(None), None, None)
-            // process::exit(1);
         },
         ((true, Some(color)), _) => {
             println!("BRAVO {:?} \"{}\"", color, color);
             return (Some(Some(color)), None, None)
-            // process::exit(1);    
         },
         _ => ()
     };
@@ -183,11 +180,6 @@ fn get_last_protected<'a, T>(list: &'a Vec<T>) -> Option<&'a T> {
     list.get(len)
 }
 
-// fn push_before_playing(boards: &mut Vec<Board>, players: &mut Vec<Players>) {
-//     boards.push(get_last(boards).clone());
-//     players.push(get_last(players).clone());
-// }
-
 fn print_time(us: u128) -> String {
     if us > 1000000 {
         format!("{},{} s", us / 1000000, (us % 1000000) / 1000)
@@ -240,8 +232,8 @@ fn main() {
             let ref mut text_glyph = GlyphCache::new("assets/AlegreyaSansSC-ExtraBold.ttf", (), TextureSettings::new()).unwrap();
             let bravo = Texture::from_path(&Path::new("./assets/bravo.png"), &TextureSettings::new()).unwrap();
             let crown = Texture::from_path(&Path::new("./assets/crown.png"), &TextureSettings::new()).unwrap();
-            let robot_black = Texture::from_path(&Path::new("./assets/robot_50.png"), &TextureSettings::new()).unwrap();
-            let robot_white= Texture::from_path(&Path::new("./assets/robot_50_white.png"), &TextureSettings::new()).unwrap();
+            let robot_black = Texture::from_path(&Path::new("./assets/robot.png"), &TextureSettings::new()).unwrap();
+            let robot_white= Texture::from_path(&Path::new("./assets/robot_white.png"), &TextureSettings::new()).unwrap();
             let mut last_input: Vec<Input> = Vec::new();
             let mut start_p1 = time::Instant::now();
             let mut start_p2 = time::Instant::now();
