@@ -142,7 +142,7 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
     (ret.1, ret.2)
 }
 
-fn play_everything(tree: &mut Tree, default_color: Color, is_minimax: bool) -> &mut Vec<Tree> {
+fn play_everything(tree: &mut Tree, default_color: Color, is_minimax: bool, max_leaves: usize) -> &mut Vec<Tree> {
     let current_player_color = tree.data.1.get_current_player().get_player_color();
     for i in 0..tree.board().get_board().len() {
         let input = tree.board().get_input(i);
@@ -160,8 +160,8 @@ fn play_everything(tree: &mut Tree, default_color: Color, is_minimax: bool) -> &
     }
     if current_player_color == default_color {
         tree.children.sort_by(|a, b| b.score.cmp(&a.score));
-        let end = if tree.children.len() > MAX_LEAVES {
-            MAX_LEAVES
+        let end = if tree.children.len() > max_leaves {
+            max_leaves
         } else {
             tree.children.len()
         };
@@ -184,7 +184,7 @@ fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default
     } else if maximizing_player {
         let mut value: i32 = i32::MIN;
         let mut new_alpha = alpha;
-            for mut child in play_everything(tree, default_color, true) {
+            for mut child in play_everything(tree, default_color, true, depth + 2) {
                 let ret_minimax = minimax(depth - 1, false, new_alpha, beta, default_color, &mut child, lock);
                 value = max(value, ret_minimax);
                 if value >= beta {
@@ -196,7 +196,7 @@ fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default
     } else {
         let mut value: i32 = i32::MAX;
         let mut new_beta = beta;
-            for mut child in play_everything(tree, default_color, true) {
+            for mut child in play_everything(tree, default_color, true, depth + 2) {
                 let ret_minimax = minimax(depth - 1, true, alpha, new_beta, default_color, &mut child, lock);
                 value = min(value, ret_minimax);
                 if alpha >= value {
@@ -213,7 +213,7 @@ fn pvs(tree: &mut Tree, depth: usize, mut alpha: i32, beta: i32, color: Color) -
         return tree.score
     }
     let mut is_first = true;
-    for mut child in play_everything(tree, color, false) {
+    for mut child in play_everything(tree, color, false, MAX_LEAVES) {
         let mut score;
         if is_first {
             is_first = false;

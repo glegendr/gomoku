@@ -25,68 +25,154 @@ const EBEEBW_SCORE: i32 = EBEEEBE_SCORE / 4;
 const EBEBW_SCORE: i32 = EBEEBW_SCORE;
 const EBBW_SCORE: i32 = EBEBW_SCORE / 2;
 
-/* O.XXX.O */
-pub fn webbbew(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> Option<i32> { 
-    let size = board.get_size();
-    if f_x(coordinates.x, -2) >= size || f_x(coordinates.x, 4) >= size || f_y(coordinates.y, -2) >= size || f_y(coordinates.y, 4) >= size {
-        return None
-    }
+pub fn check_5_and_more(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> Option<(i32, usize)> {
     match (
-        board.get((f_x(coordinates.x, -2), f_y(coordinates.y, -2))), 
-        board.get((f_x(coordinates.x, -1), f_y(coordinates.y, -1))), 
-        board.get((coordinates.x, coordinates.y)),
-        board.get((f_x(coordinates.x, 1), f_y(coordinates.y, 1))),
-        board.get((f_x(coordinates.x, 2), f_y(coordinates.y, 2))),
-        board.get((f_x(coordinates.x, 3), f_y(coordinates.y, 3))),
-        board.get((f_x(coordinates.x, 4), f_y(coordinates.y, 4)))
+        board.get_protected((f_x(coordinates.x, -2), f_y(coordinates.y, -2))), 
+        board.get_protected((f_x(coordinates.x, -1), f_y(coordinates.y, -1))), 
+        board.get_protected((coordinates.x, coordinates.y)),
+        board.get_protected((f_x(coordinates.x, 1), f_y(coordinates.y, 1))),
+        board.get_protected((f_x(coordinates.x, 2), f_y(coordinates.y, 2))),
+        board.get_protected((f_x(coordinates.x, 3), f_y(coordinates.y, 3))),
+        board.get_protected((f_x(coordinates.x, 4), f_y(coordinates.y, 4))),
+        board.get_protected((f_x(coordinates.x, 5), f_y(coordinates.y, 5)))
     ) {
-        (Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::White)) => {
+        /* O.XXX.O */
+        (Some(Tile::Color(Color::White)), Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Empty), Some(Tile::Color(Color::White)), _) => {
             if color == Color::Black {
-                Some(WEBBBEW_SCORE)
+                return Some((WEBBBEW_SCORE, 4))
             } else {
-                Some(-WEBBBEW_SCORE)
+                return Some((-WEBBBEW_SCORE, 4))
             }
         },
-        (Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::Black)) => {
+        (Some(Tile::Color(Color::Black)), Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Empty), Some(Tile::Color(Color::Black)), _) => {
             if color == Color::Black {
-                Some(-WEBBBEW_SCORE)
+                return Some((-WEBBBEW_SCORE, 4))
             } else {
-                Some(WEBBBEW_SCORE)
+                return Some((WEBBBEW_SCORE, 4))
             }
         },
-        _ => None
-    }
-}
-
-/* XXXXX */
-pub fn bbbbb(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> Option<i32> { 
-    let size = board.get_size();
-    if f_x(coordinates.x, 4) >= size || f_y(coordinates.y, 4) >= size {
-        return None
-    }
-    match (
-        board.get((coordinates.x, coordinates.y)),
-        board.get((f_x(coordinates.x, 1), f_y(coordinates.y, 1))),
-        board.get((f_x(coordinates.x, 2), f_y(coordinates.y, 2))),
-        board.get((f_x(coordinates.x, 3), f_y(coordinates.y, 3))),
-        board.get((f_x(coordinates.x, 4), f_y(coordinates.y, 4))),
-    ) {
-        (Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Color(Color::Black)) => {
+        /* XXXXX */
+        (_, _, Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), _) => {
             if color == Color::Black {
-                Some(BBBBB_SCORE)
+                return Some((BBBBB_SCORE, 5))
             } else {
-                Some(-BBBBB_SCORE)
+                return Some((-BBBBB_SCORE, 5))
             }
         },
-        (Tile::Color(Color::White), Tile::Color(Color::White), Tile::Color(Color::White), Tile::Color(Color::White), Tile::Color(Color::White)) => {
+        (_, _, Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), _) => {
             if color == Color::Black {
-                Some(-BBBBB_SCORE)
+                return Some((-BBBBB_SCORE, 5))
             } else {
-                Some(BBBBB_SCORE)
+                return Some((BBBBB_SCORE, 5))
             }   
         },
-        _ => None
-    }
+        /* ---------------------------- 5 ----------------------------*/
+        /* .X.XXX. || .XXX.X. */
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((EBEBBBE_SCORE, 5))
+            } else {
+                return Some((-EBEBBBE_SCORE, 5))
+            }
+        },
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((EBEBBBE_SCORE, 5))
+            } else {
+                return Some((-EBEBBBE_SCORE, 5))
+            }
+        },
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((-EBEBBBE_SCORE, 5))
+            } else {
+                return Some((EBEBBBE_SCORE, 5))
+            }   
+        },
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((-EBEBBBE_SCORE, 5))
+            } else {
+                return Some((EBEBBBE_SCORE, 5))
+            }   
+        },
+        /* .XX.XX. */
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((EBBEBBE_SCORE, 5))
+            } else {
+                return Some((-EBBEBBE_SCORE, 5))
+            }
+        },
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((-EBBEBBE_SCORE, 5))
+            } else {
+                return Some((EBBEBBE_SCORE, 5))
+            }   
+        },
+        /* .X..XX. || .XX..X. */
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Empty), Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((EBEEBBE_SCORE, 5))
+            } else {
+                return Some((-EBEEBBE_SCORE, 5))
+            }
+        },
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Color(Color::Black)), Some(Tile::Empty), Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((EBEEBBE_SCORE, 5))
+            } else {
+                return Some((-EBEEBBE_SCORE, 5))
+            }
+        },
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Empty), Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((-EBEEBBE_SCORE, 5))
+            } else {
+                return Some((EBEEBBE_SCORE, 5))
+            }   
+        },
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Color(Color::White)), Some(Tile::Empty), Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((-EBEEBBE_SCORE, 5))
+            } else {
+                return Some((EBEEBBE_SCORE, 5))
+            }
+        },
+        /* .X.X.X. */
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((EBEBEBE_SCORE, 5))
+            } else {
+                return Some((-EBEBEBE_SCORE, 5))
+            }
+        },
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((-EBEBEBE_SCORE, 5))
+            } else {
+                return Some((EBEBEBE_SCORE, 5))
+            }
+        },
+        /* .X...X. */
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Empty), Some(Tile::Empty), Some(Tile::Empty), Some(Tile::Color(Color::Black)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((EBEEEBE_SCORE, 5))
+            } else {
+                return Some((-EBEEEBE_SCORE, 5))
+            }
+        },
+        (_, Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Empty), Some(Tile::Empty), Some(Tile::Empty), Some(Tile::Color(Color::White)), Some(Tile::Empty)) => {
+            if color == Color::Black {
+                return Some((-EBEEEBE_SCORE, 5))
+            } else {
+                return Some((EBEEEBE_SCORE, 5))
+            }
+        },
+        _ => ()
+    };
+    None
 }
 
 pub fn get_cases_size_2(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> Option<i32> {
@@ -284,21 +370,21 @@ pub fn get_cases_size_4(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usi
         return None
     }
     if f_x(coordinates.x, -1) >= size || f_y(coordinates.y, -1) >= size {
-        first_match = Tile::OutOfBounds;
+        first_match = &Tile::OutOfBounds;
     } else {
-        first_match = board.get((f_x(coordinates.x, -1), f_y(coordinates.y, -1)))
+        first_match = board.get_ref((f_x(coordinates.x, -1), f_y(coordinates.y, -1)))
     }
     if f_x(coordinates.x, 4) >= size || f_y(coordinates.y, 4) >= size {
-        last_match = Tile::OutOfBounds;
+        last_match = &Tile::OutOfBounds;
     } else {
-        last_match = board.get((f_x(coordinates.x, 4), f_y(coordinates.y, 4)))
+        last_match = board.get_ref((f_x(coordinates.x, 4), f_y(coordinates.y, 4)))
     }
     match (
         first_match,
-        board.get((coordinates.x, coordinates.y)),
-        board.get((f_x(coordinates.x, 1), f_y(coordinates.y, 1))),
-        board.get((f_x(coordinates.x, 2), f_y(coordinates.y, 2))),
-        board.get((f_x(coordinates.x, 3), f_y(coordinates.y, 3))),
+        board.get_ref((coordinates.x, coordinates.y)),
+        board.get_ref((f_x(coordinates.x, 1), f_y(coordinates.y, 1))),
+        board.get_ref((f_x(coordinates.x, 2), f_y(coordinates.y, 2))),
+        board.get_ref((f_x(coordinates.x, 3), f_y(coordinates.y, 3))),
         last_match
     ) {
         /* .XXXX. */
@@ -474,139 +560,6 @@ pub fn get_cases_size_4(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usi
                 Some(-EBEEBW_SCORE)
             } else {
                 Some(EBEEBW_SCORE)
-            }
-        },
-        _ => None
-    }
-}
-
-pub fn get_cases_size_5(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> Option<i32> {
-    let size = board.get_size();
-    let first_match;
-    let last_match;
-    if f_x(coordinates.x, 4) >= size || f_y(coordinates.y, 4) >= size {
-        return None
-    }
-    if f_x(coordinates.x, -1) >= size || f_y(coordinates.y, -1) >= size {
-        first_match = Tile::Color(color.get_inverse_color());
-    } else {
-        first_match = board.get((f_x(coordinates.x, -1), f_y(coordinates.y, -1)))
-    }
-    if f_x(coordinates.x, 5) >= size || f_y(coordinates.y, 5) >= size {
-        last_match = Tile::Color(color.get_inverse_color());
-    } else {
-        last_match = board.get((f_x(coordinates.x, 5), f_y(coordinates.y, 5)))
-    }
-    match (
-        first_match,
-        board.get((coordinates.x, coordinates.y)),
-        board.get((f_x(coordinates.x, 1), f_y(coordinates.y, 1))),
-        board.get((f_x(coordinates.x, 2), f_y(coordinates.y, 2))),
-        board.get((f_x(coordinates.x, 3), f_y(coordinates.y, 3))),
-        board.get((f_x(coordinates.x, 4), f_y(coordinates.y, 4))),
-        last_match
-    ) {
-        /* .X.XXX. || .XXX.X. */
-        (Tile::Empty, Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty) => {
-            if color == Color::Black {
-                Some(EBEBBBE_SCORE)
-            } else {
-                Some(-EBEBBBE_SCORE)
-            }
-        },
-        (Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Empty) => {
-            if color == Color::Black {
-                Some(EBEBBBE_SCORE)
-            } else {
-                Some(-EBEBBBE_SCORE)
-            }
-        },
-        (Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Empty) => {
-            if color == Color::Black {
-                Some(-EBEBBBE_SCORE)
-            } else {
-                Some(EBEBBBE_SCORE)
-            }   
-        },
-        (Tile::Empty, Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty) => {
-            if color == Color::Black {
-                Some(-EBEBBBE_SCORE)
-            } else {
-                Some(EBEBBBE_SCORE)
-            }   
-        },
-        /* .XX.XX. */
-        (Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty) => {
-            if color == Color::Black {
-                Some(EBBEBBE_SCORE)
-            } else {
-                Some(-EBBEBBE_SCORE)
-            }
-        },
-        (Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty) => {
-            if color == Color::Black {
-                Some(-EBBEBBE_SCORE)
-            } else {
-                Some(EBBEBBE_SCORE)
-            }   
-        },
-        /* .X..XX. || .XX..X. */
-        (Tile::Empty, Tile::Color(Color::Black), Tile::Empty, Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty) => {
-            if color == Color::Black {
-                Some(EBEEBBE_SCORE)
-            } else {
-                Some(-EBEEBBE_SCORE)
-            }
-        },
-        (Tile::Empty, Tile::Color(Color::Black), Tile::Color(Color::Black), Tile::Empty, Tile::Empty, Tile::Color(Color::Black), Tile::Empty) => {
-            if color == Color::Black {
-                Some(EBEEBBE_SCORE)
-            } else {
-                Some(-EBEEBBE_SCORE)
-            }
-        },
-        (Tile::Empty, Tile::Color(Color::White), Tile::Empty, Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty) => {
-            if color == Color::Black {
-                Some(-EBEEBBE_SCORE)
-            } else {
-                Some(EBEEBBE_SCORE)
-            }   
-        },
-        (Tile::Empty, Tile::Color(Color::White), Tile::Color(Color::White), Tile::Empty, Tile::Empty, Tile::Color(Color::White), Tile::Empty) => {
-            if color == Color::Black {
-                Some(-EBEEBBE_SCORE)
-            } else {
-                Some(EBEEBBE_SCORE)
-            }
-        },
-        /* .X.X.X. */
-        (Tile::Empty, Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Empty, Tile::Color(Color::Black), Tile::Empty) => {
-            if color == Color::Black {
-                Some(EBEBEBE_SCORE)
-            } else {
-                Some(-EBEBEBE_SCORE)
-            }
-        },
-        (Tile::Empty, Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Empty, Tile::Color(Color::White), Tile::Empty) => {
-            if color == Color::Black {
-                Some(-EBEBEBE_SCORE)
-            } else {
-                Some(EBEBEBE_SCORE)
-            }
-        },
-        /* .X...X. */
-        (Tile::Empty, Tile::Color(Color::Black), Tile::Empty, Tile::Empty, Tile::Empty, Tile::Color(Color::Black), Tile::Empty) => {
-            if color == Color::Black {
-                Some(EBEEEBE_SCORE)
-            } else {
-                Some(-EBEEEBE_SCORE)
-            }
-        },
-        (Tile::Empty, Tile::Color(Color::White), Tile::Empty, Tile::Empty, Tile::Empty, Tile::Color(Color::White), Tile::Empty) => {
-            if color == Color::Black {
-                Some(-EBEEEBE_SCORE)
-            } else {
-                Some(EBEEEBE_SCORE)
             }
         },
         _ => None

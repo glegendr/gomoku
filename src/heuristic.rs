@@ -105,17 +105,9 @@ impl Coordinates {
     }
 }
 
-fn get_cases(raw_board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color, _current_player_color: Color) -> (i32, usize) {
-    match webbbew(raw_board, f_x, f_y, coordinates, color) {
-        Some(score) => return (score, 4),
-        None => ()
-    }
-    match bbbbb(raw_board, f_x, f_y, coordinates, color) {
-        Some(score) => return (score, 5),
-        None => ()
-    }
-    match get_cases_size_5(raw_board, f_x, f_y, coordinates, color) {
-        Some(score) => return (score, 5),
+fn get_cases(raw_board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> (i32, usize) {
+    match check_5_and_more(raw_board, f_x, f_y, coordinates, color) {
+        Some(ret) => return ret,
         None => ()
     }
     match get_cases_size_4(raw_board, f_x, f_y, coordinates, color) {
@@ -130,15 +122,13 @@ fn get_cases(raw_board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32
         Some(score) => return (score, 2),
         None => ()
     }
-        (0, 1)
+    (0, 1)
 }
 
-#[inline]
 fn add(x: usize, y: i32) -> usize {
     (x as i32 + y) as usize
 }
 
-#[inline]
 fn sub(x: usize, y: i32) -> usize {
     if y > (x as i32) {
         return usize::MAX
@@ -146,12 +136,11 @@ fn sub(x: usize, y: i32) -> usize {
     ((x as i32) - y) as usize
 }
 
-#[inline]
 fn skip(x: usize, _:i32) -> usize {
     x
 }
 
-pub fn iter_on_board(raw_board: &Board, mode: Mode, color: Color, current_player_color: Color) -> i32 {
+pub fn iter_on_board(raw_board: &Board, mode: Mode, color: Color) -> i32 {
     let (f_x, f_y, start): (fn(usize, i32) -> usize, fn(usize, i32) -> usize, Input) = match mode {
         Mode::Vertically => (skip, add, (0, 0)),
         Mode::Horizontaly => (add, skip, (0, 0)),
@@ -168,7 +157,7 @@ pub fn iter_on_board(raw_board: &Board, mode: Mode, color: Color, current_player
             i += 1;
             continue
         }
-        let (curr_note, skip) = get_cases(&raw_board, f_x, f_y, &coordinates, color, current_player_color);
+        let (curr_note, skip) = get_cases(&raw_board, f_x, f_y, &coordinates, color);
         note += curr_note;
         coordinates.drift(f_x, f_y, skip as i32);
         i += skip;
@@ -177,19 +166,21 @@ pub fn iter_on_board(raw_board: &Board, mode: Mode, color: Color, current_player
 }
 
 fn get_distance(board: &Board, distance: i32, input: Input) -> bool {
+    let size = board.get_size() as i32;
     for y in -distance..=distance {
-        if (input.1 as i32) + y < 0 {
+        let inp_y = (input.1 as i32) + y;
+        if  inp_y < 0 {
             continue;
-        } else if (input.1 as i32) + y >= board.get_size() as i32 {
+        } else if inp_y >= size {
             break;
         }
         for x in -distance..=distance {
             if (input.0 as i32) + x < 0 || (y != -distance && y != distance && x != -distance && x != distance){
                 continue;
-            } else if (input.0 as i32) + x >= board.get_size() as i32 {
+            } else if (input.0 as i32) + x >= size {
                 break;
             }
-            if let Tile::Color(_) = board.get((((input.0 as i32) + x) as usize, ((input.1 as i32) + y) as usize)) {
+            if let Tile::Color(_) = board.get((((input.0 as i32) + x) as usize, inp_y as usize)) {
                 return true
             }
             
@@ -210,38 +201,35 @@ pub fn pruning_heuristic(input: Input, board: &Board) -> bool {
 }
 
 pub fn heuristic(board: &Board, players: &Players, default_color: Color) -> i32 {
-    let me = players.get_player(default_color);
     match players.is_finished() {
         (true, Some(color)) => {
             if color == default_color {
                 return i32::MAX
             }
-                return i32::MIN
+            return i32::MIN
         },
         _ => ()
     }
+    let me = players.get_player(default_color);
     match board.is_finished(me) {
         (true, Some(color)) => {
             if color == default_color {
                 return i32::MAX
             }
-                return i32::MIN
+            return i32::MIN
         },
         (true, _) => {
             return 0
         }
         _ => ()
     }
-    let opponent = players.get_player(default_color.get_inverse_color());
-    let mut eval = 0;
-    eval += ((me.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
-    eval -= ((opponent.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
-    let current_player_color = players.get_current_player().get_player_color();
-    eval += iter_on_board(board, Mode::Horizontaly, default_color, current_player_color);
-    eval += iter_on_board(board, Mode::Vertically, default_color, current_player_color);
-    eval += iter_on_board(board, Mode::Diagoneso, default_color, current_player_color);
-    eval += iter_on_board(board, Mode::Diagonose, default_color, current_player_color);
-    eval
+    // let opponent = players.get_player(default_color.get_inverse_color());
+    let mut eval = ((me.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
+    eval -= ((players.get_player(default_color.get_inverse_color()).get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64)) as i32;
+    eval += iter_on_board(board, Mode::Horizontaly, default_color);
+    eval += iter_on_board(board, Mode::Vertically, default_color);
+    eval += iter_on_board(board, Mode::Diagoneso, default_color);
+    eval + iter_on_board(board, Mode::Diagonose, default_color)
     // gagner / perdu capture prochain tour
     // gagner / perdu alignement prochain tour
     // + proche de pièces capturer = + de points 
@@ -249,42 +237,41 @@ pub fn heuristic(board: &Board, players: &Players, default_color: Color) -> i32 
     // x pts * nb de free_three
 }
 
-pub fn position_heuristic(board: &Board, players: &Players, default_color: Color, input: usize) -> i32 {
-    let me = players.get_player(default_color);
-    match players.is_finished() {
-        (true, Some(color)) => {
-            if color == default_color {
-                return i32::MAX
-            }
-                return i32::MIN
-        },
-        _ => ()
-    }
-    match board.is_finished(me) {
-        (true, Some(color)) => {
-            if color == default_color {
-                return i32::MAX
-            }
-                return i32::MIN
-        },
-        (true, _) => {
-            return 0
-        }
-        _ => ()
-    }
-    let opponent = players.get_player(default_color.get_inverse_color());
-    let coordinates = Coordinates::new_position(board.get_size(), board.get_input(input));
-    let mut eval = 0;
-    let current_player_color = players.get_current_player().get_player_color();
-    eval += ((me.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64) * (1.0 / 3.0)) as i32;
-    eval -= ((opponent.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64) * (1.0 / 3.0)) as i32;
-    eval += get_cases(board, add, skip, &coordinates, default_color, current_player_color).0;
-    eval += get_cases(board, sub, skip, &coordinates, default_color, current_player_color).0;
-    eval += get_cases(board, add, add, &coordinates, default_color, current_player_color).0;
-    eval += get_cases(board, sub, sub, &coordinates, default_color, current_player_color).0;
-    eval += get_cases(board, skip, add, &coordinates, default_color, current_player_color).0;
-    eval += get_cases(board, skip, sub, &coordinates, default_color, current_player_color).0;
-    eval += get_cases(board, add, sub, &coordinates, default_color, current_player_color).0;
-    eval += get_cases(board, sub, add, &coordinates, default_color, current_player_color).0;
-    eval
-}
+// pub fn position_heuristic(board: &Board, players: &Players, default_color: Color, input: usize) -> i32 {
+//     let me = players.get_player(default_color);
+//     match players.is_finished() {
+//         (true, Some(color)) => {
+//             if color == default_color {
+//                 return i32::MAX
+//             }
+//                 return i32::MIN
+//         },
+//         _ => ()
+//     }
+//     match board.is_finished(me) {
+//         (true, Some(color)) => {
+//             if color == default_color {
+//                 return i32::MAX
+//             }
+//                 return i32::MIN
+//         },
+//         (true, _) => {
+//             return 0
+//         }
+//         _ => ()
+//     }
+//     let opponent = players.get_player(default_color.get_inverse_color());
+//     let coordinates = Coordinates::new_position(board.get_size(), board.get_input(input));
+//     let mut eval = 0;
+//     eval += ((me.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64) * (1.0 / 3.0)) as i32;
+//     eval -= ((opponent.get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * (i32::MAX as f64) * (1.0 / 3.0)) as i32;
+//     eval += get_cases(board, add, skip, &coordinates, default_color).0;
+//     eval += get_cases(board, sub, skip, &coordinates, default_color).0;
+//     eval += get_cases(board, add, add, &coordinates, default_color).0;
+//     eval += get_cases(board, sub, sub, &coordinates, default_color).0;
+//     eval += get_cases(board, skip, add, &coordinates, default_color).0;
+//     eval += get_cases(board, skip, sub, &coordinates, default_color).0;
+//     eval += get_cases(board, add, sub, &coordinates, default_color).0;
+//     eval += get_cases(board, sub, add, &coordinates, default_color,).0;
+//     eval
+// }

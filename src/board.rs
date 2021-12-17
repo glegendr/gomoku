@@ -82,6 +82,14 @@ impl Board {
         self.board[input.0 + input.1 * self.get_size()]
     }
 
+    pub fn get_protected(&self, input: Input) -> Option<&Tile> {
+        self.board.get(input.0 + input.1 * self.get_size())
+    }
+
+    pub fn get_ref(&self, input: Input) -> &Tile {
+        self.board.get(input.0 + input.1 * self.get_size()).unwrap()
+    }
+
     pub fn get_index(&self, i: usize) -> Tile {
         self.board[i]
     }
