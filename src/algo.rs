@@ -109,7 +109,7 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
     for (i, child) in board.get_board().iter().enumerate() {
         if *child == Tile::Empty {
             let input = board.get_input(i);
-            if pruning_heuristic(input, &board) && board.check_add_value(input, &players).is_ok() {
+            if pruning_heuristic(input, &board) && board.check_add_value_algo(input, &players).is_ok() {
                 let mut new_board = board.clone();
                 let mut new_players = players.clone();
                 let c_lock = Arc::clone(&lock);
@@ -117,8 +117,8 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
                     new_board.add_value_checked(input, &mut new_players);
                     new_players.next_player();
                     let mut tree = Tree::new((new_board, new_players), i, color);
-                    // let score = pvs(&mut tree, MINMAX_DEPTH - 1, i32::MIN, i32::MAX, color);
                     let score = minimax(MINMAX_DEPTH - 1 , false, i32::MIN, i32::MAX, color, &mut tree, &c_lock);
+                    // let score = pvs(&mut tree, MINMAX_DEPTH - 1, i32::MIN, i32::MAX, color);
                     if score == i32::MAX {
                         let mut mut_lock = c_lock.write().unwrap();
                         *mut_lock = true;
@@ -149,7 +149,7 @@ fn play_everything(tree: &mut Tree, default_color: Color, is_minimax: bool, max_
         if tree.board().get_index(i) == Tile::Empty
             && !tree.children.iter().any(|x| x.input == i)
             && pruning_heuristic(input, tree.board())
-            && tree.board().check_add_value(input, tree.players()).is_ok() {
+            && tree.board().check_add_value_algo(input, tree.players()).is_ok() {
             let mut new_board = tree.board().clone();
             let mut new_players = tree.players().clone();
             new_board.add_value_checked(input, &mut new_players);
@@ -179,7 +179,7 @@ fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default
     if *is_finished {
         return 0
     }
-    if depth == 0 || tree.board().is_finished(tree.players().get_current_player()).0 || tree.players().is_finished().0 {
+    if depth == 0 || tree.score == i32::MAX || tree.score == i32::MIN {
         return tree.score
     } else if maximizing_player {
         let mut value: i32 = i32::MIN;

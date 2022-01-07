@@ -112,48 +112,6 @@ impl Board {
         winner
     }
 
-    pub fn _get_free_three(&self, input: Input, color: Color) -> u8 {
-        let lst = [
-            case1(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x),
-            case1(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x),
-            case1(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize),
-            case1(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize),
-            case1(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize),
-            case1(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize),
-            case1(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize),
-            case1(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),
-            case2(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x),
-            case2(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize),
-            case2(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize),
-            case2(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),  
-            _case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x),
-            _case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x),
-            _case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize),
-            _case3(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize),
-            _case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize),
-            _case3(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize),
-            _case3(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize),
-            _case3(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),    
-            case4(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x),
-            case4(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x),
-            case4(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize),
-            case4(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize),
-            case4(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize),
-            case4(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize),
-            case4(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize),
-            case4(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),
-            _case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x),
-            _case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, _| x),
-            _case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 - y) as usize),
-            _case5(self, input, color, |x, y| (x as i32 - y) as usize, |x, y| (x as i32 + y) as usize),
-            _case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 - y) as usize),
-            _case5(self, input, color, |x, y| (x as i32 + y) as usize, |x, y| (x as i32 + y) as usize),
-            _case5(self, input, color, |x, _|  x, |x, y| (x as i32 - y) as usize),
-            _case5(self, input, color, |x, _| x, |x, y| (x as i32 + y) as usize),
-        ];
-        lst.iter().sum::<u8>()
-    }
-
     pub fn check_double_free_three(&self, input: Input, color: Color) -> bool {
         let mut count: u8 = 0;
         count += case1(self, input, color, |x, y| (x as i32 - y) as usize, |x, _| x);
@@ -275,6 +233,13 @@ impl Board {
         } else if self.get(input) != Tile::Empty {
             return Err(PlacementError::NotEmpty)
         } else if self.check_double_free_three(input, color) {
+            return Err(PlacementError::DoubleFreeThree)
+        }
+        Ok(())
+    }
+
+    pub fn check_add_value_algo(&self, input: Input, players: &Players) -> Result<(), PlacementError> {
+        if self.check_double_free_three(input, players.get_current_player().get_player_color()) {
             return Err(PlacementError::DoubleFreeThree)
         }
         Ok(())

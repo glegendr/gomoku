@@ -4,7 +4,7 @@ use crate::heuristic::Coordinates;
 
 
 /* ORDER */
-const BBBBB_SCORE: i32 = ((i32::MAX as f64) * (2.0/3.0)) as i32;
+const BBBBB_SCORE: i32 = ((i32::MAX as f64) * (2.0 / 3.0)) as i32;
 const EBBBBE_SCORE: i32 = ((BBBBB_SCORE as f64) / 1.5) as i32;
 const EBEBBBE_SCORE: i32 = EBBBBE_SCORE / 2;
 const EBBEBBE_SCORE: i32 = EBEBBBE_SCORE / 3;
