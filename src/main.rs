@@ -166,8 +166,8 @@ fn main() {
     let mut players: Players;
     let visual: bool;
     match leakser(&mut args[1..]) {
-        Ok((m, c, r, a, v)) => {
-            board = Board::new(m, a, r);
+        Ok((s, c, r, a, v)) => {
+            board = Board::new(s, a, r);
             players = Players::new(player1, player2, c, r);
             visual = v;
         },

@@ -3,6 +3,11 @@ const CAPTURED_NB: usize = 10;
 const CAPTURE_RANGE: usize = 2;
 const ALIGNEMENT_NB: usize = 5;
 
+const BOARD_LENGTH_LIMIT: usize = 19;
+const CAPTURED_NB_LIMIT: usize = 10;
+const CAPTURE_RANGE_LIMIT: usize = 2;
+const ALIGNEMENT_NB_LIMIT: usize = 5;
+
 const MORPION_S: usize = 3;
 const MORPION_C: usize = 1;
 const MORPION_R: usize = 0;
@@ -22,6 +27,14 @@ struct MapFlag {
     captured_nb: usize,
     range: usize,
     alignement_nb: usize
+}
+
+struct OnOffFlag {
+    lst_flag: Vec<String>,
+    visual: bool,
+    special_rule: bool,
+    morpion_rule: bool,
+    tenten_rule: bool
 }
 
 impl MapFlag {
@@ -76,38 +89,96 @@ impl MapFlag {
         }
         false
     }
+
+    fn parse_values(&self) -> Result<(), FlagError> {
+        let m = self.get_size();
+        let c = self.get_captured_nb();
+        let r = self.get_range();
+        let a = self.get_alignement_nb();
+        if m > BOARD_LENGTH_LIMIT {
+            return Err(FlagError::MapTooBig);
+        }
+        if c > CAPTURED_NB_LIMIT {
+            return Err(FlagError::CapturedTooBig);
+        }
+        if r > CAPTURE_RANGE_LIMIT {
+            return Err(FlagError::RangeTooBig);
+        }
+        if a > ALIGNEMENT_NB_LIMIT {
+            return Err(FlagError::AlignementTooBig);
+        }
+        if m < 3 || m < a || m < r + 2 {
+            return Err(FlagError::MapTooSmall);
+        }
+        if c == 0 || a == 0 {
+            return Err(FlagError::CannotAssignZero);
+        }
+        if r >= a {
+            return Err(FlagError::RangeTooBig);
+        }
+        Ok(())
+    }
 }
-/*
-fn get_map_flag(flags: &[String], f1: &str, f2: &str, ret: usize) -> usize {
-    for (i, x) in flags.iter().enumerate() {
-        match x.parse::<usize>() {
-            Ok(y) => {
-                match flags[i - 1] == f1 || flags[i - 1] == f2 {
-                    true => return y,
-                    _ => ()
-                }
-            },
-            Err(_) => {
-                let flag_split: Vec<&str> = x.split('=').collect();
-                if flag_split.len() == 2 {
-                    if flag_split[0] == f1 || flag_split[0] == f2 {
-                        return flag_split[1].parse::<usize>().unwrap();
-                    }
-                }
+
+impl OnOffFlag {
+    fn new() -> OnOffFlag {
+        OnOffFlag {
+            lst_flag: vec![
+                "-v".to_string(), "--visual".to_string(),
+                "--morpion".to_string(), "--MORPION".to_string(),
+                "--tenten".to_string(), "--TENTEN".to_string()
+            ],
+            visual: false,
+            special_rule: false,
+            morpion_rule: false,
+            tenten_rule: false
+        }
+    }
+
+    fn get_lst_flag(&self) -> &Vec<String> {
+        &self.lst_flag
+    }
+
+    fn get_visual_flag(&self) -> bool {
+        self.visual
+    }
+
+    fn get_special_rule(&self) -> bool {
+        self.special_rule
+    }
+
+    fn get_morpion_rule(&self) -> bool {
+        self.morpion_rule
+    }
+
+    fn get_tenten_rule(&self) -> bool {
+        self.tenten_rule
+    }
+
+    fn assign_special_rule(&mut self) -> bool {
+        match self.get_special_rule() {
+            true => false,
+            _ => {
+                self.special_rule = true;
+                true
             }
         }
-    };
-    ret
-}
+    }
 
-
-fn get_v_flag(flags: &mut [String]) -> bool {
-    for f in flags.iter() {
-        if f == "-v" || f == "--visual" {
-            return true
+    fn get_flag(&mut self, flag: &str) {
+        match flag {
+            "-v" | "--visual" => self.visual = !self.get_visual_flag(),
+            "--morpion" | "--MORPION" => self.morpion_rule = self.assign_special_rule(),
+            "--tenten" | "--TENTEN" => self.tenten_rule = self.assign_special_rule(),
+            _ => ()
         }
-   }
-   false
+    }
+    fn parse(&self, flag: &str) -> bool {
+        if self.get_lst_flag().iter().any(|x| *x == flag) {
+           return true;
+        }
+        false
+    }
 }
 
 fn check_helper(flags: &mut [String]) -> Result<(), FlagError> {
@@ -131,103 +202,76 @@ fn check_rules(flags: &mut [String]) -> Result<(), FlagError> {
     Ok(())
 }
 
-fn morpion_rule(flags: &mut [String]) -> bool {
-    for flag in flags.iter() {
-        if flag == "--morpion" {
-            return true
-        }
+fn assign_values(
+    map_flag: MapFlag,
+    on_off_flag: OnOffFlag
+) -> Result<(usize, usize, usize, usize, bool), FlagError> {
+    if on_off_flag.get_morpion_rule() == true {
+        Ok((
+            MORPION_S,
+            MORPION_C,
+            MORPION_R,
+            MORPION_A,
+            on_off_flag.get_visual_flag()
+        ))
+    } else if on_off_flag.get_tenten_rule() == true {
+        Ok((
+            TENTEN_S,
+            TENTEN_C,
+            TENTEN_R,
+            TENTEN_A,
+            on_off_flag.get_visual_flag()
+        ))
+    } else {
+        Ok((
+            map_flag.get_size(),
+            map_flag.get_captured_nb(),
+            map_flag.get_range(),
+            map_flag.get_alignement_nb(),
+            on_off_flag.get_visual_flag()
+        ))
     }
-   false 
 }
 
-
-fn tenten_rule(flags: &mut [String]) -> bool {
-    for flag in flags.iter() {
-        if flag == "--tenten" {
-            return true
-        }
-    }
-   false 
-}
-
-
-fn special_rule(flags: &mut [String]) -> Result<(usize, usize, usize, usize), FlagError> {
-    if morpion_rule(flags) == true {
-        return Ok((MORPION_S, MORPION_C, MORPION_R, MORPION_A))
-    }
-    if tenten_rule(flags) == true {
-        return Ok((TENTEN_S, TENTEN_C, TENTEN_R, TENTEN_A))
-    }
-    Err(FlagError::NoSpecialRule)
-}
-
-*/
 pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, bool), FlagError> {
+    match check_helper(flags) {
+        Err(e) => return Err(e),
+        _ => ()
+    }
+    match check_rules(flags) {
+        Err(e) => return Err(e),
+        _ => ()
+    }
+
     let mut i = 0;
     let mut map_flag: MapFlag = MapFlag::new();
+    let mut on_off_flag: OnOffFlag = OnOffFlag::new();
     while i < flags.len() {
+        if i == 0 && flags[i] == "main.rs" {
+            i += 1;
+        }
         if map_flag.parse(flags[i].as_str()) == true {
-            if i >= flags.len() {
+            if i >= flags.len() - 1 {
                 return Err(FlagError::ErrorTypo);
             }
-            match flags[i + 1].parse::<usize>() {
+            match flags[i + 1].parse::<usize>() { // faut parser le usize
                 Ok(value) => map_flag.get_flag(flags[i].as_str(), value),
                 _ => return Err(FlagError::ErrorTypo)
             }
             i += 1;
+        } else if on_off_flag.parse(flags[i].as_str()) == true {
+            on_off_flag.get_flag(flags[i].as_str())
         } else {
             return Err(FlagError::WrongFlag)
         }
         i += 1;
     }
-    Ok((
-        map_flag.get_size(),
-        map_flag.get_captured_nb(),
-        map_flag.get_range(),
-        map_flag.get_alignement_nb(),
-        false
-    ))
-    /*
-    let visual: bool = get_v_flag(flags);
-    if flags.len() > 0 { 
-        if flags[0] == "main.rs" {
-            flags = &mut flags[1..];
-        }
-        match check_helper(flags) {
-            Err(e) => return Err(e),
-            _ => ()
-        }
-        match check_rules(flags) {
-            Err(e) => return Err(e),
-            _ => ()
-        }
-        if !check_args(flags) {
-            return Err(FlagError::ErrorTypo)
-        }
-        if !check_flags(flags) {
-            return Err(FlagError::WrongFlag)
-        }
-        match special_rule(flags) {
-            Ok((s, c, r, a)) => return Ok((s, c, r, a, visual)),
-            _ => ()
-        }
+    match map_flag.parse_values() {
+        Err(e) => return Err(e),
+        _ => ()
     }
-    let board_length = get_map_flag(flags, "-s", "--size", BOARD_LENGTH);
-    let captured_nb = get_map_flag(flags, "-c", "--captured", CAPTURED_NB);
-    let capture_range = get_map_flag(flags, "-r", "--range", CAPTURE_RANGE);
-    let alignement_nb = get_map_flag(flags, "-a", "--alignement", ALIGNEMENT_NB);
-    match check_numbers(
-        board_length,
-        captured_nb,
-        capture_range,
-        alignement_nb
-    ) {
-        Err(e) => Err(e),
-        _ => Ok((board_length, captured_nb, capture_range, alignement_nb, visual))
-    }
-    */
+    assign_values(map_flag, on_off_flag)
 }
-
 
 fn print_helper() {
     println!("USAGE: cargo run --release -- [OPTION]\n");
