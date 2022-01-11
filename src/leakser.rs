@@ -3,10 +3,10 @@ const CAPTURED_NB: usize = 10;
 const CAPTURE_RANGE: usize = 2;
 const ALIGNEMENT_NB: usize = 5;
 
-const BOARD_LENGTH_LIMIT: usize = 19;
-const CAPTURED_NB_LIMIT: usize = 10;
-const CAPTURE_RANGE_LIMIT: usize = 2;
-const ALIGNEMENT_NB_LIMIT: usize = 5;
+const BOARD_LENGTH_LIMIT: usize = 99;
+const CAPTURED_NB_LIMIT: usize = 999;
+const CAPTURE_RANGE_LIMIT: usize = 99;
+const ALIGNEMENT_NB_LIMIT: usize = 99;
 
 const MORPION_S: usize = 3;
 const MORPION_C: usize = 1;
@@ -19,7 +19,8 @@ const TENTEN_R: usize = 2;
 const TENTEN_A: usize = 5;
 
 use crate::error::{FlagError};
-use crate::parser::{check_flags, check_args, check_numbers};
+use crate::players::*;
+use crate::color::{Color};
 
 struct MapFlag {
     lst_flag: Vec<String>,
@@ -35,6 +36,12 @@ struct OnOffFlag {
     special_rule: bool,
     morpion_rule: bool,
     tenten_rule: bool
+}
+
+struct PlayerFlag {
+    lst_flag: Vec<String>,
+    player1: Player,
+    player2: Player
 }
 
 impl MapFlag {
@@ -173,11 +180,66 @@ impl OnOffFlag {
             _ => ()
         }
     }
+
     fn parse(&self, flag: &str) -> bool {
         if self.get_lst_flag().iter().any(|x| *x == flag) {
            return true;
         }
         false
+    }
+}
+
+impl PlayerFlag {
+    fn new() -> PlayerFlag {
+        PlayerFlag {
+            lst_flag: vec![
+                "-p1".to_string(), "--player1".to_string(),
+                "-p2".to_string(), "--player2".to_string()
+            ],
+            player1: Player::new(Color::Black, PlayerType::Human),
+            player2: Player::new(Color::White, PlayerType::Bot)
+        }
+    }
+
+    fn get_lst_flag(&self) -> &Vec<String> {
+        &self.lst_flag
+    }
+
+    fn get_player1(&self) -> Player {
+        self.player1
+    }
+
+    fn get_player2(&self) -> Player {
+        self.player2
+    }
+
+    fn assign_player_type(&self, color: Color, value: &str) -> Player {
+        match value {
+            "human" => Player::new(color, PlayerType::Human),
+            _ => Player::new(color, PlayerType::Bot),
+        }
+    }
+
+    fn get_flag(&mut self, flag: &str, value: &str) {
+        match flag {
+            "-p1" | "--player1" => self.player1 = self.assign_player_type(Color::Black, value),
+            "-p2" | "--player2" => self.player2 = self.assign_player_type(Color::White, value),
+            _ => ()
+        }
+    }
+
+    fn parse(&self, flag: &str) -> bool {
+        if self.get_lst_flag().iter().any(|x| *x == flag) {
+           return true;
+        }
+        false
+    }
+
+    fn parse_value(&self, value: &str) -> bool {
+        if value != "human" && value != "bot" {
+            return false
+        }
+        true
     }
 }
 
@@ -204,15 +266,18 @@ fn check_rules(flags: &mut [String]) -> Result<(), FlagError> {
 
 fn assign_values(
     map_flag: MapFlag,
-    on_off_flag: OnOffFlag
-) -> Result<(usize, usize, usize, usize, bool), FlagError> {
+    on_off_flag: OnOffFlag,
+    player_flag:PlayerFlag
+) -> Result<(usize, usize, usize, usize, bool, Player, Player), FlagError> {
     if on_off_flag.get_morpion_rule() == true {
         Ok((
             MORPION_S,
             MORPION_C,
             MORPION_R,
             MORPION_A,
-            on_off_flag.get_visual_flag()
+            on_off_flag.get_visual_flag(),
+            player_flag.get_player1(),
+            player_flag.get_player2()
         ))
     } else if on_off_flag.get_tenten_rule() == true {
         Ok((
@@ -220,7 +285,9 @@ fn assign_values(
             TENTEN_C,
             TENTEN_R,
             TENTEN_A,
-            on_off_flag.get_visual_flag()
+            on_off_flag.get_visual_flag(),
+            player_flag.get_player1(),
+            player_flag.get_player2()
         ))
     } else {
         Ok((
@@ -228,12 +295,16 @@ fn assign_values(
             map_flag.get_captured_nb(),
             map_flag.get_range(),
             map_flag.get_alignement_nb(),
-            on_off_flag.get_visual_flag()
+            on_off_flag.get_visual_flag(),
+            player_flag.get_player1(),
+            player_flag.get_player2()
         ))
     }
 }
 
-pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, bool), FlagError> {
+pub fn leakser(
+    mut flags: &mut [String]
+) -> Result<(usize, usize, usize, usize, bool, Player, Player), FlagError> {
     match check_helper(flags) {
         Err(e) => return Err(e),
         _ => ()
@@ -246,21 +317,34 @@ pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, 
     let mut i = 0;
     let mut map_flag: MapFlag = MapFlag::new();
     let mut on_off_flag: OnOffFlag = OnOffFlag::new();
+    let mut player_flag: PlayerFlag = PlayerFlag::new();
     while i < flags.len() {
         if i == 0 && flags[i] == "main.rs" {
             i += 1;
+            if i >= flags.len() {
+                break;
+            }
         }
         if map_flag.parse(flags[i].as_str()) == true {
             if i >= flags.len() - 1 {
                 return Err(FlagError::ErrorTypo);
             }
-            match flags[i + 1].parse::<usize>() { // faut parser le usize
+            match flags[i + 1].parse::<usize>() {
                 Ok(value) => map_flag.get_flag(flags[i].as_str(), value),
                 _ => return Err(FlagError::ErrorTypo)
             }
             i += 1;
         } else if on_off_flag.parse(flags[i].as_str()) == true {
             on_off_flag.get_flag(flags[i].as_str())
+        } else if player_flag.parse(flags[i].as_str()) == true {
+            if i >= flags.len() - 1 {
+                return Err(FlagError::ErrorTypo);
+            }
+            match player_flag.parse_value(flags[i + 1].as_str()) {
+                true => player_flag.get_flag(flags[i].as_str(), flags[i + 1].as_str()),
+                _ => return Err(FlagError::ErrorTypo)
+            }
+            i += 1;
         } else {
             return Err(FlagError::WrongFlag)
         }
@@ -270,7 +354,7 @@ pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, 
         Err(e) => return Err(e),
         _ => ()
     }
-    assign_values(map_flag, on_off_flag)
+    assign_values(map_flag, on_off_flag, player_flag)
 }
 
 fn print_helper() {
@@ -283,6 +367,8 @@ fn print_helper() {
     println!("\t-v, --visual\t\t\tOutput is a graphical window");
     println!("\t    --morpion\t\t\tSet value for a morpion game");
     println!("\t    --tenten\t\t\tSet value with a ten\'s map");
+    println!("\t-p1 --player1 <Player>\t\tchange Player type (human/bot)");
+    println!("\t-p2 --player2 <Player>\t\tchange Player type (human/bot)");
     println!("\t    --rules\t\t\tdisplay gomoku\'s rules");
     println!("\t-h, --help\t\t\tdisplay help information");
 }
