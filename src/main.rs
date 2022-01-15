@@ -20,11 +20,13 @@ extern crate piston;
 extern crate glutin_window;
 extern crate graphics;
 extern crate opengl_graphics;
+extern crate colored;
 
 use piston::*;
 use glutin_window::GlutinWindow;
 use opengl_graphics::{OpenGL, GlGraphics};
 use graphics::{clear};
+use colored::Colorize;
 
 
 fn get_human_input(_player_color: Color) -> Input {
@@ -157,6 +159,7 @@ fn game_graphic<E: GenericEvent>(board: &mut Board, players: &mut Players, mpos:
     false
 }
 
+
 fn main() {
     let mut args: Vec<String> = env::args().collect();
     let mut board: Board;
@@ -168,8 +171,12 @@ fn main() {
             players = Players::new(p1, p2, c, r);
             visual = v;
         },
-        Err(e) => {
-            println!("{}", e);
+        Err((e, f)) => {
+            if f == usize::MAX {
+                println!("\n{} {}", format!("error:").red(), e);
+            } else {
+                println!("\n{} \'{}\' {}", format!("error:").red(), args[f + 1].yellow(), e);
+            }
             if e != FlagError::PrintHelper && e != FlagError::PrintRules {
                 println!("for more information use \"cargo run -- --help\"");
             }

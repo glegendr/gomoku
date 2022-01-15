@@ -117,8 +117,8 @@ impl MapFlag {
         if m < 3 || m < a || m < r + 2 {
             return Err(FlagError::MapTooSmall);
         }
-        if c == 0 || a == 0 {
-            return Err(FlagError::CannotAssignZero);
+        if a < 2 {
+            return Err(FlagError::AlignementTooSmall);
         }
         if r >= a {
             return Err(FlagError::RangeTooBig);
@@ -268,7 +268,7 @@ fn assign_values(
     map_flag: MapFlag,
     on_off_flag: OnOffFlag,
     player_flag:PlayerFlag
-) -> Result<(usize, usize, usize, usize, bool, Player, Player), FlagError> {
+) -> Result<(usize, usize, usize, usize, bool, Player, Player), (FlagError, usize)> {
     if on_off_flag.get_morpion_rule() == true {
         Ok((
             MORPION_S,
@@ -304,13 +304,13 @@ fn assign_values(
 
 pub fn leakser(
     mut flags: &mut [String]
-) -> Result<(usize, usize, usize, usize, bool, Player, Player), FlagError> {
+) -> Result<(usize, usize, usize, usize, bool, Player, Player), (FlagError, usize)> {
     match check_helper(flags) {
-        Err(e) => return Err(e),
+        Err(e) => return Err((e, usize::MAX)),
         _ => ()
     }
     match check_rules(flags) {
-        Err(e) => return Err(e),
+        Err(e) => return Err((e, usize::MAX)),
         _ => ()
     }
 
@@ -327,38 +327,38 @@ pub fn leakser(
         }
         if map_flag.parse(flags[i].as_str()) == true {
             if i >= flags.len() - 1 {
-                return Err(FlagError::ErrorTypo);
+                return Err((FlagError::FlagNeedValue, i));
             }
             match flags[i + 1].parse::<usize>() {
                 Ok(value) => map_flag.get_flag(flags[i].as_str(), value),
-                _ => return Err(FlagError::ErrorTypo)
+                _ => return Err((FlagError::NoNumberValue, i + 1))
             }
             i += 1;
         } else if on_off_flag.parse(flags[i].as_str()) == true {
             on_off_flag.get_flag(flags[i].as_str())
         } else if player_flag.parse(flags[i].as_str()) == true {
             if i >= flags.len() - 1 {
-                return Err(FlagError::ErrorTypo);
+                return Err((FlagError::FlagNeedValue, i));
             }
             match player_flag.parse_value(flags[i + 1].as_str()) {
                 true => player_flag.get_flag(flags[i].as_str(), flags[i + 1].as_str()),
-                _ => return Err(FlagError::ErrorTypo)
+                _ => return Err((FlagError::IncorrectValue, i + 1))
             }
             i += 1;
         } else {
-            return Err(FlagError::WrongFlag)
+            return Err((FlagError::WrongFlag, i))
         }
         i += 1;
     }
     match map_flag.parse_values() {
-        Err(e) => return Err(e),
+        Err(e) => return Err((e, usize::MAX)),
         _ => ()
     }
     assign_values(map_flag, on_off_flag, player_flag)
 }
 
 fn print_helper() {
-    println!("USAGE: cargo run --release -- [OPTION]\n");
+    println!("USAGE: cargo run --release [--] [OPTIONS]\n");
     println!("OPTIONS:");
     println!("\t-s, --size <Value>\t\tsize of gomoku\'s board");
     println!("\t-c, --captured <Value>\t\tnumber of stones to capture to win");
