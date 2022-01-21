@@ -36,16 +36,16 @@ impl fmt::Display for PlacementError {
 impl fmt::Display for FlagError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            FlagError::WrongFlag => write!(f, "this flag doesn't exist"),
+            FlagError::WrongFlag => write!(f, "This flag doesn't exist"),
             FlagError::MapTooBig => write!(f, "Your map is too big"),
-            FlagError::CapturedTooBig => write!(f, "Cyour captured number is too big"),
+            FlagError::CapturedTooBig => write!(f, "Your captured number is too big"),
             FlagError::RangeTooBig => write!(f, "Your range is too big"),
             FlagError::AlignementTooBig => write!(f, "Your alignement number is too big"),
             FlagError::AlignementTooSmall => write!(f, "Your alignement number is too small"),
             FlagError::MapTooSmall => write!(f, "Your map is too small"),
-            FlagError::FlagNeedValue => write!(f, "this flag need a value"),
-            FlagError::NoNumberValue => write!(f, "this is not a number"),
-            FlagError::IncorrectValue => write!(f, "that's an incorrect value"),
+            FlagError::FlagNeedValue => write!(f, "This flag need a value"),
+            FlagError::NoNumberValue => write!(f, "This is not a number"),
+            FlagError::IncorrectValue => write!(f, "That's an incorrect value"),
             FlagError::PrintRules => write!(f, ""),
             FlagError::PrintHelper => write!(f, "")
         }

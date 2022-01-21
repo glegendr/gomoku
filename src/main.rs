@@ -204,12 +204,12 @@ fn main() {
             visual = v;
         },
         Err((e, f)) => {
-            if f == usize::MAX {
-                println!("\n{} {}", format!("error:").red(), e);
-            } else {
-                println!("\n{} \'{}\' {}", format!("error:").red(), args[f + 1].yellow(), e);
-            }
             if e != FlagError::PrintHelper && e != FlagError::PrintRules {
+                if f == usize::MAX { 
+                    println!("\n{} {}", format!("error:").red(), e);
+                } else {
+                    println!("\n{} \'{}\' {}", format!("error:").red(), args[f + 1].yellow(), e);
+                }
                 println!("for more information use \"cargo run -- --help\"");
             }
             process::exit(1);
