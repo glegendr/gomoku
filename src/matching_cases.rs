@@ -1,6 +1,9 @@
-use crate::board::{Board, Tile};
-use crate::color::Color;
-use crate::heuristic::Coordinates;
+use crate::{
+    board::{Board, Tile},
+    color::Color,
+    heuristic::Coordinates,
+    config::CONFIG,
+};
 
 
 /* ORDER */
@@ -176,18 +179,17 @@ pub fn check_5_and_more(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usi
 }
 
 pub fn get_cases_size_2(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> Option<i32> {
-    let size = board.get_size();
     let first_match;
     let last_match;
-    if f_x(coordinates.x, 1) >= size || f_y(coordinates.y, 1) >= size {
+    if f_x(coordinates.x, 1) >= CONFIG.board_length || f_y(coordinates.y, 1) >= CONFIG.board_length {
         return None
     }
-    if f_x(coordinates.x, -1) >= size || f_y(coordinates.y, -1) >= size {
+    if f_x(coordinates.x, -1) >= CONFIG.board_length || f_y(coordinates.y, -1) >= CONFIG.board_length {
         first_match = Tile::OutOfBounds;
     } else {
         first_match = board.get((f_x(coordinates.x, -1), f_y(coordinates.y, -1)))
     }
-    if f_x(coordinates.x, 2) >= size || f_y(coordinates.y, 2) >= size {
+    if f_x(coordinates.x, 2) >= CONFIG.board_length || f_y(coordinates.y, 2) >= CONFIG.board_length {
         last_match = Tile::OutOfBounds;
     } else {
         last_match = board.get((f_x(coordinates.x, 2), f_y(coordinates.y, 2)))
@@ -246,18 +248,17 @@ pub fn get_cases_size_2(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usi
     }
 }
 pub fn get_cases_size_3(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> Option<i32> {
-    let size = board.get_size();
     let first_match;
     let last_match;
-    if f_x(coordinates.x, 2) >= size || f_y(coordinates.y, 2) >= size {
+    if f_x(coordinates.x, 2) >= CONFIG.board_length || f_y(coordinates.y, 2) >= CONFIG.board_length {
         return None
     }
-    if f_x(coordinates.x, -1) >= size || f_y(coordinates.y, -1) >= size {
+    if f_x(coordinates.x, -1) >= CONFIG.board_length || f_y(coordinates.y, -1) >= CONFIG.board_length {
         first_match = Tile::OutOfBounds;
     } else {
         first_match = board.get((f_x(coordinates.x, -1), f_y(coordinates.y, -1)))
     }
-    if f_x(coordinates.x, 3) >= size || f_y(coordinates.y, 3) >= size {
+    if f_x(coordinates.x, 3) >= CONFIG.board_length || f_y(coordinates.y, 3) >= CONFIG.board_length {
         last_match = Tile::OutOfBounds;
     } else {
         last_match = board.get((f_x(coordinates.x, 3), f_y(coordinates.y, 3)))
@@ -363,18 +364,17 @@ pub fn get_cases_size_3(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usi
 }
 
 pub fn get_cases_size_4(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> Option<i32> {
-    let size = board.get_size();
     let first_match;
     let last_match;
-    if f_x(coordinates.x, 3) >= size || f_y(coordinates.y, 3) >= size {
+    if f_x(coordinates.x, 3) >= CONFIG.board_length || f_y(coordinates.y, 3) >= CONFIG.board_length {
         return None
     }
-    if f_x(coordinates.x, -1) >= size || f_y(coordinates.y, -1) >= size {
+    if f_x(coordinates.x, -1) >= CONFIG.board_length || f_y(coordinates.y, -1) >= CONFIG.board_length {
         first_match = &Tile::OutOfBounds;
     } else {
         first_match = board.get_ref((f_x(coordinates.x, -1), f_y(coordinates.y, -1)))
     }
-    if f_x(coordinates.x, 4) >= size || f_y(coordinates.y, 4) >= size {
+    if f_x(coordinates.x, 4) >= CONFIG.board_length || f_y(coordinates.y, 4) >= CONFIG.board_length {
         last_match = &Tile::OutOfBounds;
     } else {
         last_match = board.get_ref((f_x(coordinates.x, 4), f_y(coordinates.y, 4)))

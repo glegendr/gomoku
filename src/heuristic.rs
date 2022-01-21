@@ -1,7 +1,10 @@
-use crate::board::*;
-use crate::players::*;
-use crate::color::*;
-use crate::matching_cases::*;
+use crate::{
+    board::*,
+    players::*,
+    color::*,
+    matching_cases::*,
+    config::CONFIG,
+};
 
 #[derive(Debug)]
 pub struct Coordinates {
@@ -141,13 +144,13 @@ pub fn iter_on_board(raw_board: &Board, mode: Mode, color: Color) -> i32 {
         Mode::Vertically => (skip, add, (0, 0)),
         Mode::Horizontaly => (add, skip, (0, 0)),
         Mode::Diagoneso => (sub, add, (0, 0)),
-        Mode::Diagonose => (add, add, (0, raw_board.get_size() - 1))
+        Mode::Diagonose => (add, add, (0, CONFIG.board_length - 1))
     };
     let mut note: i32 = 0;
     let board = raw_board.get_board();
     let mut i: usize = 0;
-    let mut coordinates = Coordinates::new(raw_board.get_size(), start, mode);
-    while i < raw_board.get_total_tiles() {
+    let mut coordinates = Coordinates::new(CONFIG.board_length, start, mode);
+    while i < CONFIG.total_tiles {
         if board[coordinates.to_index()] == Tile::Empty {
             coordinates.drift(f_x, f_y, 1);
             i += 1;
@@ -162,7 +165,7 @@ pub fn iter_on_board(raw_board: &Board, mode: Mode, color: Color) -> i32 {
 }
 
 fn get_distance(board: &Board, distance: i32, input: Input) -> bool {
-    let size = board.get_size() as i32;
+    let size = CONFIG.board_length as i32;
     for y in -distance..=distance {
         let inp_y = (input.1 as i32) + y;
         if  inp_y < 0 {
@@ -212,8 +215,8 @@ pub fn heuristic(board: &Board, players: &Players, default_color: Color) -> i32 
         }
         _ => ()
     }
-    let mut eval = ((players.get_player(default_color).get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * ((1.0 / 3.0) * (i32::MAX as f64))) as i32;
-    eval -= ((players.get_player(default_color.get_inverse_color()).get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * ((1.0 / 3.0) * (i32::MAX as f64))) as i32;
+    let mut eval = ((players.get_player(default_color).get_player_captured().pow(2) as f64 / CONFIG.capture_nb.pow(2) as f64) * ((1.0 / 3.0) * (i32::MAX as f64))) as i32;
+    eval -= ((players.get_player(default_color.get_inverse_color()).get_player_captured().pow(2) as f64 / CONFIG.capture_nb.pow(2) as f64) * ((1.0 / 3.0) * (i32::MAX as f64))) as i32;
     eval += iter_on_board(board, Mode::Horizontaly, default_color);
     eval += iter_on_board(board, Mode::Vertically, default_color);
     eval += iter_on_board(board, Mode::Diagoneso, default_color);

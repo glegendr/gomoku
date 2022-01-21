@@ -1,4 +1,5 @@
 use crate::color::Color;
+use crate::config::CONFIG;
 use std::fmt;
 
 #[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
@@ -58,8 +59,6 @@ pub struct Players {
     player1: Player,
     player2: Player,
     current_player: Player,
-    captured_nb: usize,
-    capture_range: usize
 }
 
 impl fmt::Display for Players {
@@ -76,13 +75,11 @@ impl fmt::Display for Players {
 }
 
 impl Players {
-    pub fn new(player1: Player, player2: Player, captured_nb: usize, capture_range: usize) -> Players {
+    pub fn new(player1: Player, player2: Player) -> Players {
         Players {
             player1,
             player2,
             current_player: player1,
-            captured_nb,
-            capture_range
         }
     }
 
@@ -100,9 +97,9 @@ impl Players {
     }
 
     pub fn is_finished(&self) -> (bool, Option<Color>) {
-        if self.player1.get_player_captured() >= self.get_captured_nb() {
+        if self.player1.get_player_captured() >= CONFIG.capture_nb {
             return (true, Some(self.player1.color));
-        } else if self.player2.get_player_captured() >= self.get_captured_nb() {
+        } else if self.player2.get_player_captured() >= CONFIG.capture_nb {
             return (true, Some(self.player2.color));
         } else {
             return (false, None)
@@ -130,18 +127,10 @@ impl Players {
         }
     }
 
-    pub fn get_captured_nb(&self) -> usize {
-        self.captured_nb
-    }
-
-    fn get_capture_range(&self) -> usize {
-        self.capture_range
-    }
-
     pub fn add_capture(&mut self, color: Color) {
         match color {
-            Color::Black => self.player1.add_capture(self.get_capture_range()),
-            _ => self.player2.add_capture(self.get_capture_range())
+            Color::Black => self.player1.add_capture(CONFIG.capture_range),
+            _ => self.player2.add_capture(CONFIG.capture_range)
         }
     }
 }

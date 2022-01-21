@@ -1,6 +1,9 @@
-use crate::board::*;
-use crate::Players;
-use crate::color::{Color};
+use crate::{
+    board::*,
+    Players,
+    color::{Color},
+    config::CONFIG,
+};
 use graphics::*;//::{Context, Graphics, CircleArc, Line};
 
 pub struct View {
@@ -20,7 +23,7 @@ impl View {
     pub fn new(board: &Board) -> View {
         let grid_start: f64 = 100.0;
         let grid_end: f64 = 900.0;
-        let cell: f64 = (grid_end - grid_start) / board.get_size() as f64;
+        let cell: f64 = (grid_end - grid_start) / CONFIG.board_length as f64;
         let stone: f64 = ((cell - 2.0) * 2.0) / 3.0;
         View {
             background_color: [0.35, 0.18, 0.0, 1.0], // Brown
@@ -168,7 +171,7 @@ impl View {
     }
 
     fn draw_grid<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G) {
-        for i in 0..board.get_size() {
+        for i in 0..CONFIG.board_length {
             let x_axe: f64 = i as f64 * self.get_cell_size() + self.get_cell_size() / 2.0 + self.get_grid_start();
             if x_axe < self.get_grid_end() {
                 View::draw_line(
@@ -185,7 +188,7 @@ impl View {
                 );
             }
         }
-        for i in 0..board.get_size() {
+        for i in 0..CONFIG.board_length {
             let y_axe: f64 = i as f64 * self.get_cell_size() + self.get_cell_size() / 2.0 + self.get_grid_start();
             if y_axe < self.get_grid_end() {
                 View::draw_line(

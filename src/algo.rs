@@ -1,7 +1,10 @@
-use crate::board::*;
-use crate::players::*;
-use crate::color::*;
-use crate::heuristic::*;
+use crate::{
+    board::*,
+    players::*,
+    color::*,
+    heuristic::*,
+    config::CONFIG,
+};
 use std::cmp::{min, max};
 use std::thread;
 use std::fmt;
@@ -66,7 +69,7 @@ pub fn get_bot_input(players: &Players, board: &Board, tree: &Option<Tree>) -> (
 
 fn play_everything_and_compute(board: Board, players: Players, color: Color, calculated_tree: &Option<Tree>) -> (usize, Option<Tree>) {
     if board.get_board().iter().all(|x| x == &Tile::Empty) {
-        return (board.get_total_tiles() / 2, None)
+        return (CONFIG.total_tiles / 2, None)
     }
     let lock: Arc<RwLock<bool>> = Arc::new(RwLock::new(false));
     let mut handle:Vec<thread::JoinHandle<(i32, usize, Option<Tree>)>> = Vec::new();

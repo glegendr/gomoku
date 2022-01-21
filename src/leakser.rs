@@ -62,8 +62,8 @@ fn check_rules(flags: &mut [String]) -> Result<(), FlagError> {
 
 
 pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, bool), FlagError> {
-    if flags.len() > 0 { 
-        if flags[0] == "main.rs" {
+    if flags.len() > 0 {
+        if flags[0] == "main.rs" || flags[0] == "--bench" {
             flags = &mut flags[1..];
         }
         match check_helper(flags) {
