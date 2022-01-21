@@ -19,7 +19,8 @@ pub enum FlagError {
     MapTooSmall,
     CannotAssignZero,
     PrintRules,
-    PrintHelper
+    PrintHelper,
+    AlgorithmNonDefined
 }
 
 impl fmt::Display for PlacementError {
@@ -44,6 +45,7 @@ impl fmt::Display for FlagError {
             FlagError::AlignementTooSmall => write!(f, "Alignement is too small"),
             FlagError::MapTooSmall => write!(f, "Map is too small"),
             FlagError::CannotAssignZero => write!(f, "Cannot assign value at zero"),
+            FlagError::AlgorithmNonDefined => write!(f, "Algorithm non defined"),
             FlagError::PrintRules => write!(f, ""),
             FlagError::PrintHelper => write!(f, "")
         }

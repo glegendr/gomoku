@@ -2,6 +2,7 @@ const BOARD_LENGTH: usize = 19;
 const CAPTURED_NB: usize = 10;
 const CAPTURE_RANGE: usize = 2;
 const ALIGNEMENT_NB: usize = 5;
+const DEFAULT_BOT: usize = 0;
 
 use crate::error::{FlagError};
 use crate::parser::{check_flags, check_args, check_numbers};
@@ -61,7 +62,7 @@ fn check_rules(flags: &mut [String]) -> Result<(), FlagError> {
 }
 
 
-pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, bool), FlagError> {
+pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, bool, usize), FlagError> {
     if flags.len() > 0 { 
         if flags[0] == "main.rs" {
             flags = &mut flags[1..];
@@ -86,14 +87,16 @@ pub fn leakser(mut flags: &mut [String]) -> Result<(usize, usize, usize, usize, 
     let captured_nb = get_map_flag(flags, "-c", "--captured", CAPTURED_NB);
     let capture_range = get_map_flag(flags, "-r", "--range", CAPTURE_RANGE);
     let alignement_nb = get_map_flag(flags, "-a", "--alignement", ALIGNEMENT_NB);
+    let bot_type = get_map_flag(flags, "-b", "--bot", DEFAULT_BOT);
     match check_numbers(
         board_length,
         captured_nb,
         capture_range,
-        alignement_nb
+        alignement_nb,
+        bot_type
     ) {
         Err(e) => Err(e),
-        _ => Ok((board_length, captured_nb, capture_range, alignement_nb, visual))
+        _ => Ok((board_length, captured_nb, capture_range, alignement_nb, visual, bot_type))
     }
 }
 
@@ -108,6 +111,7 @@ fn print_helper() {
     println!("\t-a, --alignement\tnumber of stones to align for win");
     println!("\t    --rules\t\tdisplay gomoku\'s rules");
     println!("\t-h, --help\t\tdisplay help information");
+    println!("\t-b, --bot\t\tchange bot's algorithm\n\t\t\t\t\t-> 0: PVS\n\t\t\t\t\t-> 1: Minimax")
 }
 
 

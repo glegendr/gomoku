@@ -3,7 +3,10 @@ const CAPTURED_NB_LIMIT: usize = 10;
 const CAPTURE_RANGE_LIMIT: usize = 2;
 const ALIGNEMENT_NB_LIMIT: usize = 5;
 
-use crate::error::{FlagError};
+use crate::{
+    error::FlagError,
+    players::Algorithm
+};
 
 
 pub fn check_args(flags: &[String]) -> bool {
@@ -36,7 +39,8 @@ fn check_map_flag_exist(flag: &str) -> bool {
         "-c", "--captured",
         "-r", "--range",
         "-a", "--alignement",
-        "-v", "--visual"
+        "-v", "--visual",
+        "-b", "--bot"
     ];
     if lst_flags.iter().any(|x| *x == flag) {
         return true;
@@ -89,7 +93,7 @@ pub fn check_flags(flags: &[String]) -> bool {
 }
 
 
-pub fn check_numbers(m: usize, c: usize, r: usize, a: usize) -> Result<(), FlagError> {
+pub fn check_numbers(m: usize, c: usize, r: usize, a: usize, b: usize) -> Result<(), FlagError> {
     if m < 3 {
         return Err(FlagError::MapTooSmall);
     }
@@ -116,6 +120,9 @@ pub fn check_numbers(m: usize, c: usize, r: usize, a: usize) -> Result<(), FlagE
     }
     if r >= a {
         return Err(FlagError::RangeTooBig);
+    }
+    if b > Algorithm::length() {
+        return Err(FlagError::AlgorithmNonDefined);
     }
     Ok(())
 }

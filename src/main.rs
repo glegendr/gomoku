@@ -193,12 +193,12 @@ fn print_time(us: u128) -> String {
 fn main() {
     let mut args: Vec<String> = env::args().collect();
     let mut board: Vec<Board>;
-    let player1 = Player::new(Color::Black, PlayerType::Human);
-    let player2 = Player::new(Color::White, PlayerType::Bot(Algorithm::basic_algorithm()));
     let mut players: Vec<Players>;
     let visual: bool;
     match leakser(&mut args[1..]) {
-        Ok((m, c, r, a, v)) => {
+        Ok((m, c, r, a, v, b)) => {
+            let player1 = Player::new(Color::Black, PlayerType::Human);
+            let player2 = Player::new(Color::White, PlayerType::Bot(Algorithm::usize_to_algorithm(b)));
             board = vec![Board::new(m, a, r)];
             players = vec![Players::new(player1, player2, c, r)];
             visual = v;

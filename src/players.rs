@@ -5,12 +5,24 @@ use std::fmt;
 #[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
 pub enum Algorithm {
     Pvs,
-    Minimax
+    Minimax 
 }
 
 impl Algorithm {
+
+    pub fn usize_to_algorithm(i: usize) -> Algorithm {
+        match i {
+            0 => Algorithm::Pvs,
+            _ => Algorithm::Minimax
+        }
+    }
+
     pub fn basic_algorithm() -> Algorithm {
-       Algorithm::Pvs
+        Algorithm::usize_to_algorithm(0)
+    }
+
+    pub fn length() -> usize {
+        2
     }
 }
 
