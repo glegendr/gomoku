@@ -65,7 +65,7 @@ pub fn get_bot_input(players: &Players, board: &Board, tree: &Option<Tree>) -> (
 
 fn play_everything_and_compute(board: Board, players: Players, color: Color, calculated_tree: &Option<Tree>) -> (usize, Option<Tree>) {
     if board.get_board().iter().all(|x| x == &Tile::Empty) {
-        return (board.get_total_tiles() / 2, None)
+        return (board.from_input((board.get_size()/ 2, board.get_size() / 2)), None)
     }
     let lock: Arc<RwLock<bool>> = Arc::new(RwLock::new(false));
     let mut handle:Vec<thread::JoinHandle<(i32, usize, Option<Tree>)>> = Vec::new();
