@@ -2,8 +2,14 @@ use crate::color::Color;
 use std::fmt;
 
 #[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
+pub enum Algorithm {
+    Pvs,
+    Minimax
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
 pub enum PlayerType {
-    Bot,
+    Bot(Algorithm),
     Human
 }
 

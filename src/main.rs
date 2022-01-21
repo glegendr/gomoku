@@ -63,7 +63,7 @@ fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mu
     let now = time::Instant::now();
     let input = match players.get_current_player().get_player_type() {
         PlayerType::Human => get_human_input(players.get_current_player().get_player_color()),
-        PlayerType::Bot => {
+        PlayerType::Bot(_) => {
             match players.get_current_player().get_player_color() {
                 Color::Black => {
                     let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
@@ -126,7 +126,7 @@ fn game_graphic<E: GenericEvent>(board: &mut Board, players: &mut Players, mpos:
     };
     let input = match players.get_current_player().get_player_type() {
         PlayerType::Human => get_human_input_graphic(players.get_current_player().get_player_color(), mpos, event, view),
-        PlayerType::Bot => {
+        PlayerType::Bot(_) => {
         let now = time::Instant::now();
         let ret: (usize, usize);
         match players.get_current_player().get_player_color() {

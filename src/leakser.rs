@@ -41,7 +41,7 @@ struct OnOffFlag {
 struct PlayerFlag {
     lst_flag: Vec<String>,
     player1: Player,
-    player2: Player
+    player2: Player,
 }
 
 impl MapFlag {
@@ -197,7 +197,7 @@ impl PlayerFlag {
                 "-p2".to_string(), "--player2".to_string()
             ],
             player1: Player::new(Color::Black, PlayerType::Human),
-            player2: Player::new(Color::White, PlayerType::Bot)
+            player2: Player::new(Color::White, PlayerType::Bot(Algorithm::Pvs))
         }
     }
 
@@ -214,9 +214,11 @@ impl PlayerFlag {
     }
 
     fn assign_player_type(&self, color: Color, value: &str) -> Player {
-        match value {
+        match value.to_lowercase().as_str() {
             "human" => Player::new(color, PlayerType::Human),
-            _ => Player::new(color, PlayerType::Bot),
+            "pvs" | "bot" => Player::new(color, PlayerType::Bot(Algorithm::Pvs)),
+            "minimax" => Player::new(color, PlayerType::Bot(Algorithm::Minimax)),
+            _ => unreachable!()
         }
     }
 
@@ -236,10 +238,13 @@ impl PlayerFlag {
     }
 
     fn parse_value(&self, value: &str) -> bool {
-        if value != "human" && value != "bot" {
-            return false
+        match value.to_lowercase().as_str() {
+            "human" |
+            "pvs" |
+            "bot" |
+            "minimax" => true,
+            _ => false
         }
-        true
     }
 }
 
@@ -367,8 +372,8 @@ fn print_helper() {
     println!("\t-v, --visual\t\t\tOutput is a graphical window");
     println!("\t    --morpion\t\t\tSet value for a morpion game");
     println!("\t    --tenten\t\t\tSet value with a ten\'s map");
-    println!("\t-p1 --player1 <Player>\t\tchange Player type (human/bot)");
-    println!("\t-p2 --player2 <Player>\t\tchange Player type (human/bot)");
+    println!("\t-p1 --player1 <Player>\t\tchange Player type (human/bot/pvs/minimax)");
+    println!("\t-p2 --player2 <Player>\t\tchange Player type (human/bot/pvs/minimax)");
     println!("\t    --rules\t\t\tdisplay gomoku\'s rules");
     println!("\t-h, --help\t\t\tdisplay help information");
 }
