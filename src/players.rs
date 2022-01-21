@@ -1,9 +1,22 @@
 use crate::color::Color;
 use std::fmt;
 
+
+#[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
+pub enum Algorithm {
+    Pvs,
+    Minimax
+}
+
+impl Algorithm {
+    pub fn basic_algorithm() -> Algorithm {
+       Algorithm::Pvs
+    }
+}
+
 #[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
 pub enum PlayerType {
-    Bot,
+    Bot(Algorithm),
     Human
 }
 
@@ -31,8 +44,8 @@ impl Player {
 
     fn change_player_type(&mut self) {
         match self.player_type {
-            PlayerType::Bot => self.player_type = PlayerType::Human,
-            _ => self.player_type = PlayerType::Bot,
+            PlayerType::Bot(_) => self.player_type = PlayerType::Human,
+            _ => self.player_type = PlayerType::Bot(Algorithm::basic_algorithm()),
         }
     }
 

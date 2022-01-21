@@ -30,8 +30,8 @@ const CAPTURE_NB: usize = 10;
 fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("Algo piece start", |b| {
         let mut board: Board = Board::new(BENCHMARK_SIZE, ALIGNEMENT_NB, CAPTURE_RANGE);
-        let player1 = Player::new(Color::Black, PlayerType::Bot);
-        let player2 = Player::new(Color::White, PlayerType::Bot);
+        let player1 = Player::new(Color::Black, PlayerType::Bot(Algorithm::basic_algorithm()));
+        let player2 = Player::new(Color::White, PlayerType::Bot(Algorithm::basic_algorithm()));
         let mut players = Players::new(player1, player2, CAPTURE_NB, CAPTURE_RANGE);
         let _ = board.add_value(board.get_input(0), &mut players);
         b.iter(|| {
@@ -42,8 +42,8 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("Algo piece center", |b| {
         let mut board: Board = Board::new(BENCHMARK_SIZE, ALIGNEMENT_NB, CAPTURE_RANGE);
-        let player1 = Player::new(Color::Black, PlayerType::Bot);
-        let player2 = Player::new(Color::White, PlayerType::Bot);
+        let player1 = Player::new(Color::Black, PlayerType::Bot(Algorithm::basic_algorithm()));
+        let player2 = Player::new(Color::White, PlayerType::Bot(Algorithm::basic_algorithm()));
         let mut players = Players::new(player1, player2, CAPTURE_NB, CAPTURE_RANGE);
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2), &mut players);
         b.iter(|| {
@@ -54,8 +54,8 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("Algo piece end", |b| {
         let mut board: Board = Board::new(BENCHMARK_SIZE, ALIGNEMENT_NB, CAPTURE_RANGE);
-        let player1 = Player::new(Color::Black, PlayerType::Bot);
-        let player2 = Player::new(Color::White, PlayerType::Bot);
+        let player1 = Player::new(Color::Black, PlayerType::Bot(Algorithm::basic_algorithm()));
+        let player2 = Player::new(Color::White, PlayerType::Bot(Algorithm::basic_algorithm()));
         let mut players = Players::new(player1, player2, CAPTURE_NB, CAPTURE_RANGE);
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES - 1), &mut players);
         b.iter(|| {
@@ -66,8 +66,8 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("Algo 3 pieces stacked", |b| {
         let mut board: Board = Board::new(BENCHMARK_SIZE, ALIGNEMENT_NB, CAPTURE_RANGE);
-        let player1 = Player::new(Color::Black, PlayerType::Bot);
-        let player2 = Player::new(Color::White, PlayerType::Bot);
+        let player1 = Player::new(Color::Black, PlayerType::Bot(Algorithm::basic_algorithm()));
+        let player2 = Player::new(Color::White, PlayerType::Bot(Algorithm::basic_algorithm()));
         let mut players = Players::new(player1, player2, CAPTURE_NB, CAPTURE_RANGE);
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2), &mut players);
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2 + 1), &mut players);
@@ -80,8 +80,8 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     c.bench_function("Algo 6 pieces stacked", |b| {
         let mut board: Board = Board::new(BENCHMARK_SIZE, ALIGNEMENT_NB, CAPTURE_RANGE);
-        let player1 = Player::new(Color::Black, PlayerType::Bot);
-        let player2 = Player::new(Color::White, PlayerType::Bot);
+        let player1 = Player::new(Color::Black, PlayerType::Bot(Algorithm::basic_algorithm()));
+        let player2 = Player::new(Color::White, PlayerType::Bot(Algorithm::basic_algorithm()));
         let mut players = Players::new(player1, player2, CAPTURE_NB, CAPTURE_RANGE);
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2), &mut players);
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2 + 1), &mut players);

@@ -67,7 +67,7 @@ fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mu
     let now = time::Instant::now();
     let input = match players.get_current_player().get_player_type() {
         PlayerType::Human => get_human_input(players.get_current_player().get_player_color()),
-        PlayerType::Bot => {
+        PlayerType::Bot(_) => {
             match players.get_current_player().get_player_color() {
                 Color::Black => {
                     let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
@@ -129,7 +129,7 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
     let mut new_trees: (Option<Tree>, Option<Tree>) = (None, None);
     let input = match players.get_current_player().get_player_type() {
         PlayerType::Human => get_human_input_graphic(players.get_current_player().get_player_color(), mpos, event, view),
-        PlayerType::Bot => {
+        PlayerType::Bot(_) => {
         let now = time::Instant::now();
         let ret: (usize, usize);
         match players.get_current_player().get_player_color() {
@@ -194,7 +194,7 @@ fn main() {
     let mut args: Vec<String> = env::args().collect();
     let mut board: Vec<Board>;
     let player1 = Player::new(Color::Black, PlayerType::Human);
-    let player2 = Player::new(Color::White, PlayerType::Bot);
+    let player2 = Player::new(Color::White, PlayerType::Bot(Algorithm::basic_algorithm()));
     let mut players: Vec<Players>;
     let visual: bool;
     match leakser(&mut args[1..]) {
@@ -206,7 +206,7 @@ fn main() {
         Err(e) => {
             println!("{}", e);
             if e != FlagError::PrintHelper || e != FlagError::PrintRules {
-                println!("for more information use \"cargo run -- --help\"");
+                println!("for more information use \"cargo run --release -- --help\"");
             }
             process::exit(1);
         }
