@@ -27,6 +27,12 @@ impl Algorithm {
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
+pub enum Algorithm {
+    Pvs,
+    Minimax
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
 pub enum PlayerType {
     Bot(Algorithm),
     Human

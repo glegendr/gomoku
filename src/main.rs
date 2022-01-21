@@ -12,7 +12,6 @@ mod algo;
 use algo::{get_bot_input, Tree};
 mod leakser;
 use leakser::{leakser};
-mod parser;
 mod heuristic;
 mod matching_cases;
 mod view;
@@ -22,11 +21,13 @@ extern crate piston;
 extern crate glutin_window;
 extern crate graphics;
 extern crate opengl_graphics;
+extern crate colored;
 
 use piston::*;
 use glutin_window::GlutinWindow;
 use opengl_graphics::{OpenGL, GlGraphics};
 use graphics::{clear};
+use colored::Colorize;
 
 use opengl_graphics::GlyphCache;
 use opengl_graphics::*;
@@ -190,23 +191,26 @@ fn print_time(us: u128) -> String {
     }
 }
 
+
 fn main() {
     let mut args: Vec<String> = env::args().collect();
     let mut board: Vec<Board>;
     let mut players: Vec<Players>;
     let visual: bool;
     match leakser(&mut args[1..]) {
-        Ok((m, c, r, a, v, b)) => {
-            let player1 = Player::new(Color::Black, PlayerType::Human);
-            let player2 = Player::new(Color::White, PlayerType::Bot(Algorithm::usize_to_algorithm(b)));
-            board = vec![Board::new(m, a, r)];
-            players = vec![Players::new(player1, player2, c, r)];
+        Ok((s, c, r, a, v, p1, p2)) => {
+            board = vec![Board::new(s, a, r)];
+            players = vec![Players::new(p1, p2, c, r)];
             visual = v;
         },
-        Err(e) => {
-            println!("{}", e);
-            if e != FlagError::PrintHelper || e != FlagError::PrintRules {
-                println!("for more information use \"cargo run --release -- --help\"");
+        Err((e, f)) => {
+            if f == usize::MAX {
+                println!("\n{} {}", format!("error:").red(), e);
+            } else {
+                println!("\n{} \'{}\' {}", format!("error:").red(), args[f + 1].yellow(), e);
+            }
+            if e != FlagError::PrintHelper && e != FlagError::PrintRules {
+                println!("for more information use \"cargo run -- --help\"");
             }
             process::exit(1);
         }

@@ -10,17 +10,17 @@ pub enum PlacementError {
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum FlagError {
     WrongFlag,
-    ErrorTypo,
     MapTooBig,
     CapturedTooBig,
     RangeTooBig,
     AlignementTooBig,
     AlignementTooSmall,
     MapTooSmall,
-    CannotAssignZero,
+    FlagNeedValue,
+    NoNumberValue,
+    IncorrectValue,
     PrintRules,
     PrintHelper,
-    AlgorithmNonDefined
 }
 
 impl fmt::Display for PlacementError {
@@ -36,16 +36,16 @@ impl fmt::Display for PlacementError {
 impl fmt::Display for FlagError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            FlagError::WrongFlag => write!(f, "Wrong flag"),
-            FlagError::ErrorTypo => write!(f, "Error typo"),
-            FlagError::MapTooBig => write!(f, "Map is too big"),
-            FlagError::CapturedTooBig => write!(f, "Captured is too big"),
-            FlagError::RangeTooBig => write!(f, "Range is too big"),
-            FlagError::AlignementTooBig => write!(f, "Alignement is too big"),
-            FlagError::AlignementTooSmall => write!(f, "Alignement is too small"),
-            FlagError::MapTooSmall => write!(f, "Map is too small"),
-            FlagError::CannotAssignZero => write!(f, "Cannot assign value at zero"),
-            FlagError::AlgorithmNonDefined => write!(f, "Algorithm non defined"),
+            FlagError::WrongFlag => write!(f, "this flag doesn't exist"),
+            FlagError::MapTooBig => write!(f, "Your map is too big"),
+            FlagError::CapturedTooBig => write!(f, "Cyour captured number is too big"),
+            FlagError::RangeTooBig => write!(f, "Your range is too big"),
+            FlagError::AlignementTooBig => write!(f, "Your alignement number is too big"),
+            FlagError::AlignementTooSmall => write!(f, "Your alignement number is too small"),
+            FlagError::MapTooSmall => write!(f, "Your map is too small"),
+            FlagError::FlagNeedValue => write!(f, "this flag need a value"),
+            FlagError::NoNumberValue => write!(f, "this is not a number"),
+            FlagError::IncorrectValue => write!(f, "that's an incorrect value"),
             FlagError::PrintRules => write!(f, ""),
             FlagError::PrintHelper => write!(f, "")
         }
