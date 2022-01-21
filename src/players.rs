@@ -20,16 +20,6 @@ impl Algorithm {
     pub fn basic_algorithm() -> Algorithm {
         Algorithm::usize_to_algorithm(0)
     }
-
-    pub fn length() -> usize {
-        2
-    }
-}
-
-#[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
-pub enum Algorithm {
-    Pvs,
-    Minimax
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]

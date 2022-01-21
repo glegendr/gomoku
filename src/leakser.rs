@@ -2,7 +2,6 @@ const BOARD_LENGTH: usize = 19;
 const CAPTURED_NB: usize = 10;
 const CAPTURE_RANGE: usize = 2;
 const ALIGNEMENT_NB: usize = 5;
-const DEFAULT_BOT: usize = 0;
 
 const BOARD_LENGTH_LIMIT: usize = 99;
 const CAPTURED_NB_LIMIT: usize = 999;
@@ -198,7 +197,7 @@ impl PlayerFlag {
                 "-p2".to_string(), "--player2".to_string()
             ],
             player1: Player::new(Color::Black, PlayerType::Human),
-            player2: Player::new(Color::White, PlayerType::Bot(Algorithm::Pvs))
+            player2: Player::new(Color::White, PlayerType::Bot(Algorithm::basic_algorithm()))
         }
     }
 
@@ -217,7 +216,8 @@ impl PlayerFlag {
     fn assign_player_type(&self, color: Color, value: &str) -> Player {
         match value.to_lowercase().as_str() {
             "human" => Player::new(color, PlayerType::Human),
-            "pvs" | "bot" => Player::new(color, PlayerType::Bot(Algorithm::Pvs)),
+            "bot" => Player::new(color, PlayerType::Bot(Algorithm::basic_algorithm())),
+            "pvs" => Player::new(color, PlayerType::Bot(Algorithm::Pvs)),
             "minimax" => Player::new(color, PlayerType::Bot(Algorithm::Minimax)),
             _ => unreachable!()
         }
@@ -309,7 +309,7 @@ fn assign_values(
 }
 
 pub fn leakser(
-    mut flags: &mut [String]
+    flags: &mut [String]
 ) -> Result<(usize, usize, usize, usize, bool, Player, Player), (FlagError, usize)> {
     match check_helper(flags) {
         Err(e) => return Err((e, usize::MAX)),
