@@ -1,5 +1,7 @@
-use crate::color::Color;
-use crate::config::CONFIG;
+use crate::{
+    config::{CONFIG, CONFIG_ERROR},
+    color::Color
+};
 use std::fmt;
 
 #[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
@@ -97,9 +99,9 @@ impl Players {
     }
 
     pub fn is_finished(&self) -> (bool, Option<Color>) {
-        if self.player1.get_player_captured() >= CONFIG.capture_nb {
+        if self.player1.get_player_captured() >= CONFIG.get().expect(CONFIG_ERROR).capture_nb {
             return (true, Some(self.player1.color));
-        } else if self.player2.get_player_captured() >= CONFIG.capture_nb {
+        } else if self.player2.get_player_captured() >= CONFIG.get().expect(CONFIG_ERROR).capture_nb {
             return (true, Some(self.player2.color));
         } else {
             return (false, None)
@@ -129,8 +131,8 @@ impl Players {
 
     pub fn add_capture(&mut self, color: Color) {
         match color {
-            Color::Black => self.player1.add_capture(CONFIG.capture_range),
-            _ => self.player2.add_capture(CONFIG.capture_range)
+            Color::Black => self.player1.add_capture(CONFIG.get().expect(CONFIG_ERROR).capture_range),
+            _ => self.player2.add_capture(CONFIG.get().expect(CONFIG_ERROR).capture_range)
         }
     }
 }

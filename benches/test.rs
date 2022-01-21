@@ -2,19 +2,20 @@
 #[path = "../src/board.rs"]
 mod board;
 use board::*;
-#[path = "../src/error.rs"]
-mod error;
 #[path = "../src/color.rs"]
 mod color;
-use color::{Color};
+#[path = "../src/error.rs"]
+mod error;
+use color::Color;
 #[path = "../src/players.rs"]
 mod players;
 use players::*;
 #[path = "../src/algo.rs"]
 mod algo;
-use algo::{get_bot_input};
+use algo::get_bot_input;
 #[path = "../src/config.rs"]
 mod config;
+use config::{Config, CONFIG};
 #[path = "../src/leakser.rs"]
 mod leakser;
 #[path = "../src/parser.rs"]
@@ -25,16 +26,13 @@ use criterion::{criterion_group, criterion_main, Criterion};
 mod heuristic;
 #[path = "../src/matching_cases.rs"]
 mod matching_cases;
-
-
-#[macro_use]
-extern crate lazy_static;
+extern crate once_cell;
 
 const BENCHMARK_SIZE: usize = 19;
 const BENCHMARK_TOTAL_TILES: usize = BENCHMARK_SIZE * BENCHMARK_SIZE;
 
-
 fn criterion_benchmark(c: &mut Criterion) {
+    CONFIG.set(Config::new()).unwrap();
     c.bench_function("Algo piece start", |b| {
         let mut board: Board = Board::new(BENCHMARK_SIZE);
         let player1 = Player::new(Color::Black, PlayerType::Bot);
@@ -93,9 +91,18 @@ fn criterion_benchmark(c: &mut Criterion) {
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2), &mut players);
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2 + 1), &mut players);
         let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2 - 1), &mut players);
-        let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2 + BENCHMARK_SIZE), &mut players);
-        let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2 + 1 + BENCHMARK_SIZE), &mut players);
-        let _ = board.add_value(board.get_input(BENCHMARK_TOTAL_TILES / 2 - 1 + BENCHMARK_SIZE), &mut players);
+        let _ = board.add_value(
+            board.get_input(BENCHMARK_TOTAL_TILES / 2 + BENCHMARK_SIZE),
+            &mut players,
+        );
+        let _ = board.add_value(
+            board.get_input(BENCHMARK_TOTAL_TILES / 2 + 1 + BENCHMARK_SIZE),
+            &mut players,
+        );
+        let _ = board.add_value(
+            board.get_input(BENCHMARK_TOTAL_TILES / 2 - 1 + BENCHMARK_SIZE),
+            &mut players,
+        );
         b.iter(|| {
             let new_players = players.clone();
             get_bot_input(&new_players, &board, &None);

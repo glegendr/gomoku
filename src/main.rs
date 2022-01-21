@@ -2,26 +2,25 @@ use std::time::Duration;
 use std::{io, time};
 mod board;
 use board::{Board, Input};
-mod error;
 mod color;
+mod error;
 use color::Color;
 mod players;
 use players::*;
 mod algo;
 use algo::{get_bot_input, Tree};
-mod leakser;
 mod heuristic;
+mod leakser;
 mod matching_cases;
 mod parser;
 mod view;
 use view::View;
 mod config;
-use config::CONFIG;
+use config::{Config, CONFIG, CONFIG_ERROR};
 
-#[macro_use]
-extern crate lazy_static;
 extern crate glutin_window;
 extern crate graphics;
+extern crate once_cell;
 extern crate opengl_graphics;
 extern crate piston;
 
@@ -184,7 +183,9 @@ fn game_graphic<E: GenericEvent>(
             ret
         }
     };
-    if input.0 < CONFIG.board_length && input.1 < CONFIG.board_length {
+    if input.0 < CONFIG.get().expect(CONFIG_ERROR).board_length
+        && input.1 < CONFIG.get().expect(CONFIG_ERROR).board_length
+    {
         let mut new_board = board.clone();
         let mut new_players = players.clone();
         match new_board.add_value(input, &mut new_players) {
@@ -226,14 +227,15 @@ fn print_time(us: u128) -> String {
 }
 
 fn main() {
-    let mut board: Vec<Board> = vec![Board::new(CONFIG.board_length)];
+    CONFIG.set(Config::new()).unwrap();
+    let mut board: Vec<Board> = vec![Board::new(CONFIG.get().expect(CONFIG_ERROR).board_length)];
     let player1 = Player::new(Color::Black, PlayerType::Human);
     let player2 = Player::new(Color::White, PlayerType::Bot);
     let mut players: Vec<Players> = vec![Players::new(player1, player2)];
     let mut tree_player_1: Vec<Option<Tree>> = vec![None];
     let mut tree_player_2: Vec<Option<Tree>> = vec![None];
     let mut turn_count: usize = 1;
-    match CONFIG.visual {
+    match config!().visual {
         true => {
             let mut finished: Option<Option<Color>> = None;
             let view = View::new(board.get(board.len() - 1).unwrap());
