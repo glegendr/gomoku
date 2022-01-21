@@ -13,6 +13,7 @@ use players::*;
 #[path = "../src/algo.rs"]
 mod algo;
 use algo::{get_bot_input};
+extern crate criterion;
 use criterion::{criterion_group, criterion_main, Criterion};
 #[path = "../src/heuristic.rs"]
 mod heuristic;
