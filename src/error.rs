@@ -4,6 +4,7 @@ use std::fmt;
 pub enum PlacementError {
     OutOfBounds,
     NotEmpty,
+    IncorrectPlacement,
     DoubleFreeThree
 }
 
@@ -28,6 +29,7 @@ impl fmt::Display for PlacementError {
         match self {
             PlacementError::OutOfBounds =>  write!(f, "Out Of Bounds"),
             PlacementError::NotEmpty => write!(f, "Not Empty"),
+            PlacementError::IncorrectPlacement => write!(f, "Incorrect placement"),
             PlacementError::DoubleFreeThree => write!(f, "Double Free Three")
         }
     }

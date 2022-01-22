@@ -3,7 +3,7 @@ use std::time::{Duration};
 mod board;
 use board::{Board, Input};
 mod error;
-use error::{FlagError};
+use error::{FlagError, PlacementError};
 mod color;
 use color::{Color};
 mod players;
@@ -34,20 +34,25 @@ use opengl_graphics::*;
 use std::path::Path;
 use graphics::*;
 
-fn get_human_input(_player_color: Color) -> Input {
+fn get_human_input(_player_color: Color) -> Result<Input, PlacementError> {
     let mut guess = String::new();
     io::stdin()
         .read_line(&mut guess)
         .expect("Failed to read line");
-    let vec: Vec<i32> = guess.trim().split(' ')
-        .collect::<Vec<&str>>()
-        .iter()
-        .map(|x| x.parse::<i32>().unwrap())
-        .collect();
-    (vec[0] as usize, vec[1] as usize)
+    let vec: Vec<&str> = guess.trim().split(' ').collect();
+    if vec.len() != 2 {
+        return Err(PlacementError::IncorrectPlacement);
+    }
+    for coord in vec.iter() {
+        match coord.parse::<usize>() {
+            Ok(_) => (),
+            _ => return Err(PlacementError::IncorrectPlacement)
+        }
+    }
+    Ok((vec[0].parse::<usize>().unwrap(), vec[1].parse::<usize>().unwrap()))
 }
 
-fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mut Option<Tree>), turn_count: &mut usize) -> bool{
+fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mut Option<Tree>), turn_count: &mut usize) -> bool {
     
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
@@ -67,7 +72,15 @@ fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mu
     
     let now = time::Instant::now();
     let input = match players.get_current_player().get_player_type() {
-        PlayerType::Human => get_human_input(players.get_current_player().get_player_color()),
+        PlayerType::Human => {
+            match get_human_input(players.get_current_player().get_player_color()) {
+                Ok(input) => input,
+                Err(e) => {
+                    println!("{}", e);
+                    return false;
+                }
+            }
+        }
         PlayerType::Bot(_) => {
             match players.get_current_player().get_player_color() {
                 Color::Black => {
