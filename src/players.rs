@@ -78,7 +78,7 @@ impl Player {
 pub struct Players {
     player1: Player,
     player2: Player,
-    current_player: Player,
+    current_player: bool,
     captured_nb: usize,
     capture_range: usize
 }
@@ -101,7 +101,7 @@ impl Players {
         Players {
             player1,
             player2,
-            current_player: player1,
+            current_player: true,
             captured_nb,
             capture_range
         }
@@ -110,14 +110,11 @@ impl Players {
     pub fn reset(&mut self) {
         self.player1.reset();
         self.player2.reset();
-        self.current_player = self.player1;
+        self.current_player = true;
     }
 
     pub fn next_player(&mut self) {
-        match self.current_player.get_player_color() == self.player1.get_player_color() {
-            true => self.current_player = self.player2.clone(),
-            _ => self.current_player = self.player1.clone()
-        }
+        self.current_player = !self.current_player;
     }
 
     pub fn is_finished(&self) -> (bool, Option<Color>) {
@@ -137,17 +134,18 @@ impl Players {
         }
     }
 
-    pub fn get_current_player(&self) -> Player {
-        self.current_player
+    pub fn get_current_player(&self) -> &Player {
+        if self.current_player {
+            &self.player1
+        } else {
+            &self.player2
+        }
     }
 
     pub fn change_player_type(&mut self, color: Color) {
         match color {
             Color::Black => self.player1.change_player_type(),
             _ => self.player2.change_player_type()
-        }
-        if self.current_player.get_player_color() == color {
-            self.current_player.change_player_type();
         }
     }
 

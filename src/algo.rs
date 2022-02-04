@@ -148,7 +148,6 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
 }
 
 fn play_everything(tree: &mut Tree, default_color: Color, is_minimax: bool) -> &mut Vec<Tree> {
-    let current_player_color = tree.data.1.get_current_player().get_player_color();
     for i in 0..tree.board().get_board().len() {
         let input = tree.board().get_input(i);
         if tree.board().get_index(i) == Tile::Empty
@@ -159,11 +158,10 @@ fn play_everything(tree: &mut Tree, default_color: Color, is_minimax: bool) -> &
             let mut new_players = tree.players().clone();
             new_board.add_value_checked(input, &mut new_players);
                 new_players.next_player();
-                let new_tree = Tree::new((new_board, new_players), i, default_color);
-                tree.push(new_tree);
+                tree.push(Tree::new((new_board, new_players), i, default_color));
         }
     }
-    if current_player_color == default_color {
+    if tree.data.1.get_current_player().get_player_color() == default_color {
         tree.children.sort_by(|a, b| b.score.cmp(&a.score));
     } else if is_minimax {
         tree.children.sort_by(|a, b| a.score.cmp(&b.score));
@@ -190,8 +188,7 @@ fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default
                 childs.len()
             };
         for i in 0..end {
-            let ret_minimax = minimax(depth - 1, false, new_alpha, beta, default_color, &mut childs[i], lock);
-            value = max(value, ret_minimax);
+            value = max(value, minimax(depth - 1, false, new_alpha, beta, default_color, &mut childs[i], lock));
             if value >= beta {
                 return value
             }
@@ -202,8 +199,7 @@ fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default
         let mut value: i32 = i32::MAX;
         let mut new_beta = beta;
         for i in 0..childs.len() {
-            let ret_minimax = minimax(depth - 1, true, alpha, new_beta, default_color, &mut childs[i], lock);
-            value = min(value, ret_minimax);
+            value = min(value, minimax(depth - 1, true, alpha, new_beta, default_color, &mut childs[i], lock));
             if alpha >= value {
                 return value
             }

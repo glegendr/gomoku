@@ -176,7 +176,7 @@ fn get_distance(board: &Board, distance: i32, input: Input) -> bool {
             } else if (input.0 as i32) + x >= size {
                 break;
             }
-            if let Tile::Color(_) = board.get((((input.0 as i32) + x) as usize, inp_y as usize)) {
+            if let &Tile::Color(_) = board.get_ref((((input.0 as i32) + x) as usize, inp_y as usize)) {
                 return true
             }
             
