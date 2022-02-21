@@ -204,6 +204,27 @@ fn print_time(us: u128) -> String {
     }
 }
 
+fn calc_average(durations: &Vec<u128>) -> (u128, u128) {
+    let (dur1, dur2): (Vec<u128>, Vec<u128>) = durations.iter()
+        .enumerate()
+        .fold((Vec::new(), Vec::new()), |mut acc, (index, duration)| {
+            if index % 2 == 0 {
+                acc.0.push(*duration);
+            } else {
+                acc.1.push(*duration);
+            }
+            acc
+        });
+    let len1: u128 = match dur1.len() {
+        0 => 1,
+        _ => dur1.len() as u128,
+    };
+    let len2: u128 = match dur2.len() {
+        0 => 1,
+        _ => dur2.len() as u128,
+    };
+    (dur1.iter().fold(0, |acc, d| acc + d) / len1, dur2.iter().fold(0, |acc, d| acc + d) / len2)
+}
 
 fn main() {
     let mut args: Vec<String> = env::args().collect();
@@ -256,6 +277,7 @@ fn main() {
             let mut start_p2 = time::Instant::now();
             let mut time_p1: Duration = Duration::new(0, 0);
             let mut time_p2: Duration = Duration::new(0, 0);
+            let mut time_storage: Vec<u128> = Vec::new();
             while let Some(event) = events.next(&mut window) {
                 if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
                     if mpos[0] > 50.0 && mpos[0] < 150.0
@@ -275,6 +297,7 @@ fn main() {
                             start_p2 = time::Instant::now();
                             time_p1 = Duration::new(0, 0);
                             time_p2 = Duration::new(0, 0);
+                            time_storage = Vec::new();
                     } else if mpos[0] > 200.0 && mpos[0] < 300.0
                         && mpos[1] > 20.0 && mpos[1] < 70.0 {
                             if turn_count > 1 && get_last(&players).get_player(get_last(&players).get_current_player().get_player_color().get_inverse_color()).get_player_type() == PlayerType::Human {
@@ -288,6 +311,7 @@ fn main() {
                                 last_input = (&last_input[..last_input.len() - 1]).to_vec();
                                 players = (&players[..players.len() - 1]).to_vec();
                                 turn_count -= 1;
+                                time_storage.pop();
                                 finished = None;
                             } else if turn_count > 2 {
                                 if tree_player_1.len() > 1 {
@@ -300,6 +324,8 @@ fn main() {
                                 last_input = (&last_input[..last_input.len() - 2]).to_vec();
                                 players = (&players[..players.len() - 2]).to_vec();
                                 turn_count -= 2;
+                                time_storage.pop();
+                                time_storage.pop();
                                 finished = None;
                             }
                             start_p1 = time::Instant::now();
@@ -322,9 +348,11 @@ fn main() {
                         (x, Some((new_board, new_players, (new_tree_1, new_tree_2))), Some(input)) => {
                             if new_players.get_current_player().get_player_color() == Color::Black {
                                 time_p2 = start_p2.elapsed();
+                                time_storage.push(time_p2.as_micros());
                                 start_p1 = time::Instant::now();
                             } else {
                                 time_p1 = start_p1.elapsed();
+                                time_storage.push(time_p1.as_micros());
                                 start_p2 = time::Instant::now();
                             }
                             finished = x;
@@ -396,11 +424,27 @@ fn main() {
                             graphics
                         ).unwrap();
                         text::Text::new_color([0.0, 0.0, 0.0, 1.0], 12).draw(
+                            &print_time(calc_average(&time_storage).0),
+                            text_glyph,
+                            &context.draw_state,
+                            context.transform
+                                .trans(575.0, 75.0),
+                            graphics
+                        ).unwrap();
+                        text::Text::new_color([0.0, 0.0, 0.0, 1.0], 12).draw(
                             &print_time(elapsed_time.1),
                             text_glyph,
                             &context.draw_state,
                             context.transform
                                 .trans(825.0, 55.0),
+                            graphics
+                        ).unwrap();
+                        text::Text::new_color([0.0, 0.0, 0.0, 1.0], 12).draw(
+                            &print_time(calc_average(&time_storage).1),
+                            text_glyph,
+                            &context.draw_state,
+                            context.transform
+                                .trans(825.0, 75.0),
                             graphics
                         ).unwrap();
                         text::Text::new_color([0.0, 0.0, 0.0, 1.0], 32).draw(

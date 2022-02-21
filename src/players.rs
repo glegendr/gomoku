@@ -12,8 +12,8 @@ impl Algorithm {
 
     pub fn usize_to_algorithm(i: usize) -> Algorithm {
         match i {
-            0 => Algorithm::Pvs,
-            _ => Algorithm::Minimax
+            0 => Algorithm::Minimax,
+            _ => Algorithm::Pvs
         }
     }
 

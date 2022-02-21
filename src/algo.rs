@@ -5,8 +5,6 @@ use crate::heuristic::*;
 use std::cmp::{min, max};
 use std::thread;
 use std::fmt;
-use std::sync::{RwLock, Arc};
-
 const MINMAX_DEPTH: usize = 5;
 
 #[derive(Debug, Clone)]
@@ -67,28 +65,22 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
     if board.get_board().iter().all(|x| x == &Tile::Empty) {
         return (board.from_input((board.get_size()/ 2, board.get_size() / 2)), None)
     }
-    let lock: Arc<RwLock<bool>> = Arc::new(RwLock::new(false));
-    let mut handle:Vec<thread::JoinHandle<(i32, usize, Option<Tree>)>> = Vec::new();
     if calculated_tree.is_some() {
         if let Some(tree) = calculated_tree.as_ref().unwrap().find((&board, &players)) {
             if tree.children.len() > 0 {
                 if let Some(finished_tree) = tree.children.iter().find(|x| x.score == i32::MAX) {
                     return (finished_tree.input, Some(finished_tree.clone()))
                 }
+                let mut handle:Vec<thread::JoinHandle<(i32, usize, Option<Tree>)>> = Vec::new();
                 tree.children.iter().for_each(|x| {
                     if x.children.len() > 0 {
-                        let c_lock = Arc::clone(&lock);
                         let mut new_tree = x.clone();
                         handle.push(thread::spawn(move || {
                             let score = match players.get_current_player().get_player_type() {
-                                PlayerType::Bot(Algorithm::Minimax) => minimax(MINMAX_DEPTH - 1, false, i32::MIN, i32::MAX, color, &mut new_tree, &c_lock),
+                                PlayerType::Bot(Algorithm::Minimax) => minimax(MINMAX_DEPTH - 1, false, i32::MIN, i32::MAX, color, &mut new_tree),
                                 PlayerType::Bot(Algorithm::Pvs) => pvs(&mut new_tree, MINMAX_DEPTH - 1, i32::MIN + 1, i32::MAX, color),
                                 _ => unreachable!()
                             };
-                            if score == i32::MAX {
-                                let mut mut_lock = c_lock.write().unwrap();
-                                *mut_lock = true;
-                            }
                             return (score, new_tree.input, Some(new_tree))
                         }));
                     }
@@ -97,37 +89,35 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
                 for child in handle {
                     values.push(child.join().unwrap());
                 }
-                let ret = values.iter().fold((i32::MIN, 0, None), |acc, x| {
-                    if x.0 >= acc.0 {
-                        (x.0, x.1, x.2.clone())
-                    } else {
-                        acc
-                    }
-                });
-                return (ret.1, ret.2)
+                if values.len() > 0 {
+                    let ret = values.iter().fold((i32::MIN, 0, None), |acc, x| {
+                        if x.0 >= acc.0 {
+                            (x.0, x.1, x.2.clone())
+                        } else {
+                            acc
+                        }
+                    });
+                    return (ret.1, ret.2)
+                }
             }
         }
     }
+    let mut handle:Vec<thread::JoinHandle<(i32, usize, Option<Tree>)>> = Vec::new();
     for (i, child) in board.get_board().iter().enumerate() {
         if *child == Tile::Empty {
             let input = board.get_input(i);
             if pruning_heuristic(input, &board) && board.check_add_value_algo(input, &players).is_ok() {
                 let mut new_board = board.clone();
                 let mut new_players = players.clone();
-                let c_lock = Arc::clone(&lock);
                 handle.push(thread::spawn(move || {
                     new_board.add_value_checked(input, &mut new_players);
                     new_players.next_player();
                     let mut tree = Tree::new((new_board, new_players), i, color);
                     let score = match players.get_current_player().get_player_type() {
-                        PlayerType::Bot(Algorithm::Minimax) => minimax(MINMAX_DEPTH - 1, false, i32::MIN, i32::MAX, color, &mut tree, &c_lock),
+                        PlayerType::Bot(Algorithm::Minimax) => minimax(MINMAX_DEPTH - 1, false, i32::MIN, i32::MAX, color, &mut tree),
                         PlayerType::Bot(Algorithm::Pvs) => pvs(&mut tree, MINMAX_DEPTH - 1, i32::MIN + 1, i32::MAX, color),
                         _ => unreachable!()
                     };
-                    if score == i32::MAX {
-                        let mut mut_lock = c_lock.write().unwrap();
-                        *mut_lock = true;
-                    }
                     return (score, i, Some(tree))
                 }));
             }
@@ -171,11 +161,8 @@ fn play_everything(tree: &mut Tree, default_color: Color, is_minimax: bool) -> &
     &mut tree.children
 }
 
-fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default_color: Color, tree: &mut Tree, lock: &RwLock<bool>) -> i32 {
-    let is_finished = lock.read().unwrap();
-    if *is_finished {
-        return 0
-    } else if depth == 0 || tree.score == i32::MAX || tree.score == i32::MIN {
+fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default_color: Color, tree: &mut Tree) -> i32 {
+    if depth == 0 || tree.score == i32::MAX || tree.score == i32::MIN {
         return tree.score
     }
     let childs = play_everything(tree, default_color, true);
@@ -188,7 +175,7 @@ fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default
                 childs.len()
             };
         for i in 0..end {
-            value = max(value, minimax(depth - 1, false, new_alpha, beta, default_color, &mut childs[i], lock));
+            value = max(value, minimax(depth - 1, false, new_alpha, beta, default_color, &mut childs[i]));
             if value >= beta {
                 return value
             }
@@ -199,7 +186,7 @@ fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default
         let mut value: i32 = i32::MAX;
         let mut new_beta = beta;
         for i in 0..childs.len() {
-            value = min(value, minimax(depth - 1, true, alpha, new_beta, default_color, &mut childs[i], lock));
+            value = min(value, minimax(depth - 1, true, alpha, new_beta, default_color, &mut childs[i]));
             if alpha >= value {
                 return value
             }

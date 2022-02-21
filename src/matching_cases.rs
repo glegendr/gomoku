@@ -4,26 +4,32 @@ use crate::heuristic::Coordinates;
 
 
 /* ORDER */
-const BBBBB_SCORE: i32 = ((i32::MAX as f64) * (2.0 / 3.0)) as i32;
-const EBBBBE_SCORE: i32 = ((BBBBB_SCORE as f64) / 1.5) as i32;
-const EBEBBBE_SCORE: i32 = EBBBBE_SCORE / 2;
-const EBBEBBE_SCORE: i32 = EBEBBBE_SCORE / 3;
-const EBBBBW_SCORE: i32 = EBBEBBE_SCORE / 2;
-const EBBBE_SCORE: i32 = EBBBBW_SCORE / 2;
-const EBEBEBE_SCORE: i32 = EBBBE_SCORE / 4;
-const EBEBBE_SCORE: i32 = EBEBEBE_SCORE / 2;
-const EBEEBBE_SCORE: i32 = EBEBBE_SCORE /3;
-const EBBBW_SCORE: i32 = EBEEBBE_SCORE / 2;
-const WEBBBEW_SCORE: i32 = EBBBW_SCORE / 2;
-const EBBEBW_SCORE: i32 = WEBBBEW_SCORE / 3;
-const WBBEBE_SCORE: i32 = EBBEBW_SCORE / 4;
-const EBEBE_SCORE: i32 = WBBEBE_SCORE / 2;
-const EBBE_SCORE: i32 = ((EBEBE_SCORE as f64) / 1.5) as i32;
-const EBEEBE_SCORE: i32 = EBBE_SCORE / 2;
-const EBEEEBE_SCORE: i32 = EBEEBE_SCORE / 2;
-const EBEEBW_SCORE: i32 = EBEEEBE_SCORE / 4;
-const EBEBW_SCORE: i32 = EBEEBW_SCORE;
-const EBBW_SCORE: i32 = EBEBW_SCORE / 2;
+const BBBBB_SCORE: i32 = ((i32::MAX as f64) * (1.0 / 2.0)) as i32;
+/* Live 4 */
+const EBBBBE_SCORE: i32 = ((BBBBB_SCORE as f64) / 6.66) as i32;
+const EBEBBBE_SCORE: i32 = ((BBBBB_SCORE as f64) / 6.66) as i32;
+const EBBEBBE_SCORE: i32 = ((BBBBB_SCORE as f64) / 6.66) as i32;
+/* Dead 4 */
+const EBBBBW_SCORE: i32 = ((EBBBBE_SCORE as f64) / 1.5) as i32;
+const EBBBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 1.5) as i32;
+const EBEBEBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 1.5) as i32;
+/* Live 3 */
+const EBEBBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 1.5) as i32;
+const EBEEBBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 1.5) as i32;
+/* Dead 3 */
+const EBBBW_SCORE: i32 = ((EBBBBW_SCORE as f64) / 2.0) as i32;
+const WEBBBEW_SCORE: i32 = ((EBBBBW_SCORE as f64) / 2.0) as i32;
+const EBBEBW_SCORE: i32 = ((EBBBBW_SCORE as f64) / 2.0) as i32;
+const WBBEBE_SCORE: i32 = ((EBBBBW_SCORE as f64) / 2.0) as i32;
+/* Live 2 */
+const EBEBE_SCORE: i32 = ((EBBBW_SCORE as f64) / 5.0) as i32;
+const EBBE_SCORE: i32 = ((EBBBW_SCORE as f64) / 5.0) as i32;
+const EBEEBE_SCORE: i32 = ((EBBBW_SCORE as f64) / 5.0) as i32;
+const EBEEEBE_SCORE: i32 = ((EBBBW_SCORE as f64) / 5.0) as i32;
+/* Dead 2 */
+const EBEEBW_SCORE: i32 = ((EBEBE_SCORE as f64) / 3.33) as i32;
+const EBEBW_SCORE: i32 = ((EBEBE_SCORE as f64) / 3.33) as i32;
+const EBBW_SCORE: i32 = ((EBEBE_SCORE as f64) / 3.33) as i32;
 
 pub fn check_5_and_more(board: &Board, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, coordinates: &Coordinates, color: Color) -> Option<(i32, usize)> {
     match (
