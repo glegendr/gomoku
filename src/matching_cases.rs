@@ -4,18 +4,18 @@ use crate::heuristic::Coordinates;
 
 
 /* ORDER */
-const BBBBB_SCORE: i32 = ((i32::MAX as f64) * (1.0 / 2.0)) as i32;
+const BBBBB_SCORE: i32 = ((i32::MAX as f64) * (2.0 / 3.0)) as i32;
 /* Live 4 */
 const EBBBBE_SCORE: i32 = ((BBBBB_SCORE as f64) / 6.66) as i32;
 const EBEBBBE_SCORE: i32 = ((BBBBB_SCORE as f64) / 6.66) as i32;
 const EBBEBBE_SCORE: i32 = ((BBBBB_SCORE as f64) / 6.66) as i32;
 /* Dead 4 */
-const EBBBBW_SCORE: i32 = ((EBBBBE_SCORE as f64) / 1.5) as i32;
-const EBBBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 1.5) as i32;
-const EBEBEBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 1.5) as i32;
+const EBBBBW_SCORE: i32 = ((EBBBBE_SCORE as f64) / 3.0) as i32;
+const EBBBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 3.0) as i32;
+const EBEBEBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 3.0) as i32;
 /* Live 3 */
-const EBEBBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 1.5) as i32;
-const EBEEBBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 1.5) as i32;
+const EBEBBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 3.0) as i32;
+const EBEEBBE_SCORE: i32 = ((EBBBBE_SCORE as f64) / 3.0) as i32;
 /* Dead 3 */
 const EBBBW_SCORE: i32 = ((EBBBBW_SCORE as f64) / 2.0) as i32;
 const WEBBBEW_SCORE: i32 = ((EBBBBW_SCORE as f64) / 2.0) as i32;

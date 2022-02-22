@@ -63,7 +63,7 @@ pub fn get_bot_input(players: &Players, board: &Board, tree: &Option<Tree>) -> (
 
 fn play_everything_and_compute(board: Board, players: Players, color: Color, calculated_tree: &Option<Tree>) -> (usize, Option<Tree>) {
     if board.get_board().iter().all(|x| x == &Tile::Empty) {
-        return (board.from_input((board.get_size()/ 2, board.get_size() / 2)), None)
+        return (board.from_input((board.get_size() / 2, board.get_size() / 2)), None)
     }
     if calculated_tree.is_some() {
         if let Some(tree) = calculated_tree.as_ref().unwrap().find((&board, &players)) {
@@ -72,19 +72,23 @@ fn play_everything_and_compute(board: Board, players: Players, color: Color, cal
                     return (finished_tree.input, Some(finished_tree.clone()))
                 }
                 let mut handle:Vec<thread::JoinHandle<(i32, usize, Option<Tree>)>> = Vec::new();
-                tree.children.iter().for_each(|x| {
-                    if x.children.len() > 0 {
-                        let mut new_tree = x.clone();
-                        handle.push(thread::spawn(move || {
-                            let score = match players.get_current_player().get_player_type() {
-                                PlayerType::Bot(Algorithm::Minimax) => minimax(MINMAX_DEPTH - 1, false, i32::MIN, i32::MAX, color, &mut new_tree),
-                                PlayerType::Bot(Algorithm::Pvs) => pvs(&mut new_tree, MINMAX_DEPTH - 1, i32::MIN + 1, i32::MAX, color),
-                                _ => unreachable!()
-                            };
-                            return (score, new_tree.input, Some(new_tree))
-                        }));
-                    }
-                });
+                let end = if tree.children.len() > MINMAX_DEPTH + 2 {
+                        MINMAX_DEPTH + 3
+                    } else {
+                        tree.children.len()
+                    };
+                
+                for i in 0..end {
+                    let mut new_tree = tree.children[i].clone();
+                    handle.push(thread::spawn(move || {
+                        let score = match players.get_current_player().get_player_type() {
+                            PlayerType::Bot(Algorithm::Minimax) => minimax(MINMAX_DEPTH - 1, false, i32::MIN, i32::MAX, color, &mut new_tree),
+                            PlayerType::Bot(Algorithm::Pvs) => pvs(&mut new_tree, MINMAX_DEPTH - 1, i32::MIN + 1, i32::MAX, color),
+                            _ => unreachable!()
+                        };
+                        return (score, new_tree.input, Some(new_tree))
+                    }));
+                }
                 let mut values = Vec::new();
                 for child in handle {
                     values.push(child.join().unwrap());
@@ -170,10 +174,10 @@ fn minimax(depth: usize, maximizing_player: bool, alpha: i32, beta: i32, default
         let mut value: i32 = i32::MIN;
         let mut new_alpha = alpha;
         let end = if childs.len() > depth + 2 {
-                depth + 3
-            } else {
-                childs.len()
-            };
+                    depth + 3
+                } else {
+                    childs.len()
+                };
         for i in 0..end {
             value = max(value, minimax(depth - 1, false, new_alpha, beta, default_color, &mut childs[i]));
             if value >= beta {

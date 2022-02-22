@@ -212,8 +212,8 @@ pub fn heuristic(board: &Board, players: &Players, default_color: Color) -> i32 
         }
         _ => ()
     }
-    let mut eval = ((players.get_player(default_color).get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * ((1.0 / 2.0) * (i32::MAX as f64))) as i32;
-    eval -= ((players.get_player(default_color.get_inverse_color()).get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * ((1.0 / 2.0) * (i32::MAX as f64))) as i32;
+    let mut eval = ((players.get_player(default_color).get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * ((1.0 / 3.0) * (i32::MAX as f64))) as i32;
+    eval -= ((players.get_player(default_color.get_inverse_color()).get_player_captured().pow(2) as f64 / players.get_captured_nb().pow(2) as f64) * ((1.0 / 3.0) * (i32::MAX as f64))) as i32;
     eval += iter_on_board(board, Mode::Horizontaly, default_color);
     eval += iter_on_board(board, Mode::Vertically, default_color);
     eval += iter_on_board(board, Mode::Diagoneso, default_color);
