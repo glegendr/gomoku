@@ -56,7 +56,29 @@ fn opening_third_move(board: &Board, middle_input: Input) -> Option<Input> {
             (_, _) => (),
         };
     }
-    None
+    let mut adv_move:(usize, usize) = (0, 0);
+    let mut ret:(i32, i32) = (0, 0);
+    for (i, x) in board.get_board().iter().enumerate() {
+        if *x == Tile::Color(Color::White) {
+            adv_move = board.get_input(i);
+            break;
+        }
+    }
+    if (middle_input.0 as i32) - (adv_move.0 as i32) < 0 {
+        ret.0 = -1;
+    } else if (middle_input.0 as i32) - (adv_move.0 as i32) > 0 {
+        ret.0 = 1;
+    } else {
+        return None
+    }
+    if (middle_input.1 as i32) - (adv_move.1 as i32) < 0 {
+        ret.1 = 1;
+    } else if (middle_input.1 as i32) - (adv_move.1 as i32) > 0 {
+        ret.1 = -1;
+    } else {
+        return None
+    }
+    add_input(middle_input, ret.0, ret.1)
 }
 
 fn third_move_rep_1(
