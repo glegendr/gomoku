@@ -52,7 +52,7 @@ fn get_human_input(_player_color: Color) -> Result<Input, PlacementError> {
     Ok((vec[0].parse::<usize>().unwrap(), vec[1].parse::<usize>().unwrap()))
 }
 
-fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mut Option<Tree>), turn_count: &mut usize) -> bool {
+fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mut Option<Tree>), turn_count: &mut usize, depth: usize) -> bool {
     
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
@@ -84,12 +84,12 @@ fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mu
         PlayerType::Bot(_) => {
             match players.get_current_player().get_player_color() {
                 Color::Black => {
-                    let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
+                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.0, depth);
                     *trees.0 = bot_tree;
                     bot_input
                 },
                 Color::White => {
-                    let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
+                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.1, depth);
                     *trees.1 = bot_tree;
                     bot_input
                 },
@@ -123,7 +123,7 @@ fn get_human_input_graphic<E: GenericEvent>(_player_color: Color, mpos: [f64; 2]
     (usize::MAX, usize::MAX)
 }
 
-fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2], event: &E, view: &View, trees: (&Option<Tree>, &Option<Tree>), turn_count: &mut usize) -> (Option<Option<Color>>, Option<(Board, Players, (Option<Tree>, Option<Tree>))>, Option<Input>) {
+fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2], event: &E, view: &View, trees: (&Option<Tree>, &Option<Tree>), turn_count: &mut usize, depth: usize) -> (Option<Option<Color>>, Option<(Board, Players, (Option<Tree>, Option<Tree>))>, Option<Input>) {
     let mut option_ret = None;
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
@@ -148,12 +148,12 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
         let ret: (usize, usize);
         match players.get_current_player().get_player_color() {
                 Color::Black => {
-                    let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
+                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.0, depth);
                     new_trees.0 = bot_tree;
                     ret = bot_input;
                 },
                 Color::White => {
-                    let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
+                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.1, depth);
                     new_trees.1 = bot_tree;
                     ret = bot_input;
                 },
@@ -230,12 +230,14 @@ fn main() {
     let mut args: Vec<String> = env::args().collect();
     let mut board: Vec<Board>;
     let mut players: Vec<Players>;
+    let depth: usize;
     let visual: bool;
     match leakser(&mut args[1..]) {
-        Ok((s, c, r, a, v, p1, p2)) => {
+        Ok((s, c, r, a, v, p1, p2, d)) => {
             board = vec![Board::new(s, a, r)];
             players = vec![Players::new(p1, p2, c, r)];
             visual = v;
+            depth = d;
         },
         Err((e, f)) => {
             if e != FlagError::PrintHelper && e != FlagError::PrintRules {
@@ -344,7 +346,7 @@ fn main() {
                     mpos = pos
                 }
                 if finished.is_none() {
-                    match game_graphic(get_last(&board), get_last(&players), mpos, &event, &view, (get_last(&tree_player_1), get_last(&tree_player_2)), &mut turn_count) {
+                    match game_graphic(get_last(&board), get_last(&players), mpos, &event, &view, (get_last(&tree_player_1), get_last(&tree_player_2)), &mut turn_count, depth) {
                         (x, Some((new_board, new_players, (new_tree_1, new_tree_2))), Some(input)) => {
                             if new_players.get_current_player().get_player_color() == Color::Black {
                                 time_p2 = start_p2.elapsed();
@@ -481,7 +483,7 @@ fn main() {
         },
         _ => {
             loop {
-                if game(get_mut_last(&mut board), get_mut_last(&mut players), (get_mut_last(&mut tree_player_1), get_mut_last(&mut tree_player_2)), &mut turn_count) {
+                if game(get_mut_last(&mut board), get_mut_last(&mut players), (get_mut_last(&mut tree_player_1), get_mut_last(&mut tree_player_2)), &mut turn_count, depth) {
                     println!("{}", get_last(&board));
                     println!("{:?}", get_last(&players));
                     break;

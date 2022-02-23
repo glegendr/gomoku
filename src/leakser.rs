@@ -2,6 +2,7 @@ const BOARD_LENGTH: usize = 19;
 const CAPTURED_NB: usize = 10;
 const CAPTURE_RANGE: usize = 2;
 const ALIGNEMENT_NB: usize = 5;
+const MINMAX_DEPTH: usize = 5;
 
 const BOARD_LENGTH_LIMIT: usize = 99;
 const CAPTURED_NB_LIMIT: usize = 999;
@@ -27,7 +28,8 @@ struct MapFlag {
     size: usize,
     captured_nb: usize,
     range: usize,
-    alignement_nb: usize
+    alignement_nb: usize,
+    depth: usize
 }
 
 struct OnOffFlag {
@@ -51,12 +53,14 @@ impl MapFlag {
                 "-s".to_string(), "--size".to_string(),
                 "-c".to_string(), "--captured".to_string(),
                 "-r".to_string(), "--range".to_string(),
-                "-a".to_string(), "--alignement".to_string()
+                "-a".to_string(), "--alignement".to_string(),
+                "-d".to_string(), "--depth".to_string(),
             ],
             size: BOARD_LENGTH,
             captured_nb: CAPTURED_NB,
             range: CAPTURE_RANGE,
-            alignement_nb: ALIGNEMENT_NB
+            alignement_nb: ALIGNEMENT_NB,
+            depth: MINMAX_DEPTH,
         }
     }
 
@@ -86,6 +90,7 @@ impl MapFlag {
             "-c" | "--captured" => self.captured_nb = value,
             "-r" | "--range" => self.range = value,
             "-a" | "--alignement" => self.alignement_nb = value,
+            "-d" | "--depth" => self.depth = value,
             _ => ()
         }
     }
@@ -274,7 +279,7 @@ fn assign_values(
     map_flag: MapFlag,
     on_off_flag: OnOffFlag,
     player_flag:PlayerFlag
-) -> Result<(usize, usize, usize, usize, bool, Player, Player), (FlagError, usize)> {
+) -> Result<(usize, usize, usize, usize, bool, Player, Player, usize), (FlagError, usize)> {
     if on_off_flag.get_morpion_rule() == true {
         Ok((
             MORPION_S,
@@ -283,7 +288,8 @@ fn assign_values(
             MORPION_A,
             on_off_flag.get_visual_flag(),
             player_flag.get_player1(),
-            player_flag.get_player2()
+            player_flag.get_player2(),
+            map_flag.depth,
         ))
     } else if on_off_flag.get_tenten_rule() == true {
         Ok((
@@ -293,7 +299,8 @@ fn assign_values(
             TENTEN_A,
             on_off_flag.get_visual_flag(),
             player_flag.get_player1(),
-            player_flag.get_player2()
+            player_flag.get_player2(),
+            map_flag.depth
         ))
     } else {
         Ok((
@@ -303,14 +310,15 @@ fn assign_values(
             map_flag.get_alignement_nb(),
             on_off_flag.get_visual_flag(),
             player_flag.get_player1(),
-            player_flag.get_player2()
+            player_flag.get_player2(),
+            map_flag.depth
         ))
     }
 }
 
 pub fn leakser(
     flags: &mut [String]
-) -> Result<(usize, usize, usize, usize, bool, Player, Player), (FlagError, usize)> {
+) -> Result<(usize, usize, usize, usize, bool, Player, Player, usize), (FlagError, usize)> {
     match check_helper(flags) {
         Err(e) => return Err((e, usize::MAX)),
         _ => ()
@@ -370,12 +378,13 @@ fn print_helper() {
     println!("\t-c, --captured <Value>\t\tnumber of stones to capture to win");
     println!("\t-r, --range <Value>\t\trange used for capture opponent\'s stones");
     println!("\t-a, --alignement <Value>\tnumber of stones to align for win");
-    println!("\t-v, --visual\t\t\tOutput is a graphical window");
-    println!("\t    --morpion\t\t\tSet value for a morpion game");
-    println!("\t    --tenten\t\t\tSet value with a ten\'s map");
+    println!("\t-v, --visual\t\t\toutput is a graphical window");
+    println!("\t    --morpion\t\t\tset value for a morpion game");
+    println!("\t    --tenten\t\t\tset value with a ten\'s map");
     println!("\t-p1 --player1 <Player>\t\tchange Player type (human/bot/pvs/minimax)");
     println!("\t-p2 --player2 <Player>\t\tchange Player type (human/bot/pvs/minimax)");
     println!("\t    --rules\t\t\tdisplay gomoku\'s rules");
+    println!("\t-d, --depth\t\t\tset minimax depth value");
     println!("\t-h, --help\t\t\tdisplay help information");
 }
 

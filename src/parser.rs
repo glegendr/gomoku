@@ -40,7 +40,8 @@ fn check_map_flag_exist(flag: &str) -> bool {
         "-r", "--range",
         "-a", "--alignement",
         "-v", "--visual",
-        "-b", "--bot"
+        "-b", "--bot",
+        "-d", "--depth"
     ];
     if lst_flags.iter().any(|x| *x == flag) {
         return true;
