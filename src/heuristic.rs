@@ -34,8 +34,8 @@ impl Coordinates {
         }
     }
 
-    fn to_index(&self) -> usize {
-        self.x + self.y * self.size
+    fn to_input(&self) -> Input {
+        (self.x, self.y)
     }
 
     fn drift(&mut self, f_x: fn(usize, i32) -> usize, f_y: fn(usize, i32) -> usize, nb: i32) {
@@ -136,27 +136,32 @@ fn skip(x: usize, _:i32) -> usize {
     x
 }
 
-pub fn iter_on_board(raw_board: &Board, mode: Mode, color: Color) -> i32 {
+pub fn iter_on_board(board: &Board, mode: Mode, color: Color) -> i32 {
     let (f_x, f_y, start): (fn(usize, i32) -> usize, fn(usize, i32) -> usize, Input) = match mode {
         Mode::Vertically => (skip, add, (0, 0)),
         Mode::Horizontaly => (add, skip, (0, 0)),
         Mode::Diagoneso => (sub, add, (0, 0)),
-        Mode::Diagonose => (add, add, (0, raw_board.get_size() - 1))
+        Mode::Diagonose => (add, add, (0, board.get_size() - 1))
     };
     let mut note: i32 = 0;
-    let board = raw_board.get_board();
+    // let board = raw_board.get_board();
     let mut i: usize = 0;
-    let mut coordinates = Coordinates::new(raw_board.get_size(), start, mode);
-    while i < raw_board.get_total_tiles() {
-        if board[coordinates.to_index()] == Tile::Empty {
-            coordinates.drift(f_x, f_y, 1);
-            i += 1;
-            continue
+    let mut coordinates = Coordinates::new(board.get_size(), start, mode);
+    while i < board.get_total_tiles() {
+        match board.get_protected(coordinates.to_input()) {
+            Some(Tile::Empty) | None => {
+                coordinates.drift(f_x, f_y, 1);
+                i += 1;
+                continue
+            },
+            _ => {
+                let (curr_note, skip) = get_cases(&board, f_x, f_y, &coordinates, color);
+                note += curr_note;
+                coordinates.drift(f_x, f_y, skip as i32);
+                i += skip;
+            
+            }
         }
-        let (curr_note, skip) = get_cases(&raw_board, f_x, f_y, &coordinates, color);
-        note += curr_note;
-        coordinates.drift(f_x, f_y, skip as i32);
-        i += skip;
     }
     note
 }

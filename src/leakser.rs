@@ -200,8 +200,8 @@ impl PlayerFlag {
                 "-p1".to_string(), "--player1".to_string(),
                 "-p2".to_string(), "--player2".to_string()
             ],
-            player1: Player::new(Color::Black, PlayerType::Human),
-            player2: Player::new(Color::White, PlayerType::Bot(Algorithm::basic_algorithm()))
+            player1: Player::new(Color::Black, PlayerType::Bot(Algorithm::basic_algorithm())),
+            player2: Player::new(Color::White, PlayerType::Human)
         }
     }
 
