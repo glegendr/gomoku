@@ -22,6 +22,7 @@ pub enum FlagError {
     IncorrectValue,
     PrintRules,
     PrintHelper,
+    IncorectDepth
 }
 
 impl fmt::Display for PlacementError {
@@ -49,7 +50,8 @@ impl fmt::Display for FlagError {
             FlagError::NoNumberValue => write!(f, "This is not a number"),
             FlagError::IncorrectValue => write!(f, "That's an incorrect value"),
             FlagError::PrintRules => write!(f, ""),
-            FlagError::PrintHelper => write!(f, "")
+            FlagError::PrintHelper => write!(f, ""),
+            FlagError::IncorectDepth => write!(f, "Depth must be countained between 1 and 10")
         }
     }
 }

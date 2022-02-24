@@ -8,6 +8,7 @@ const BOARD_LENGTH_LIMIT: usize = 99;
 const CAPTURED_NB_LIMIT: usize = 999;
 const CAPTURE_RANGE_LIMIT: usize = 99;
 const ALIGNEMENT_NB_LIMIT: usize = 99;
+const MINMAX_DEPTH_LIMIT: usize = 10;
 
 const MORPION_S: usize = 3;
 const MORPION_C: usize = 1;
@@ -107,28 +108,26 @@ impl MapFlag {
         let c = self.get_captured_nb();
         let r = self.get_range();
         let a = self.get_alignement_nb();
+        let d = self.depth;
         if m > BOARD_LENGTH_LIMIT {
-            return Err(FlagError::MapTooBig);
+            Err(FlagError::MapTooBig)
+        } else if c > CAPTURED_NB_LIMIT {
+            Err(FlagError::CapturedTooBig)
+        } else if r > CAPTURE_RANGE_LIMIT {
+            Err(FlagError::RangeTooBig)
+        } else if a > ALIGNEMENT_NB_LIMIT {
+            Err(FlagError::AlignementTooBig)
+        } else if m < 3 || m < a || m < r + 2 {
+            Err(FlagError::MapTooSmall)
+        }  else if a < 2 {
+            Err(FlagError::AlignementTooSmall)
+        } else if r >= a {
+            Err(FlagError::RangeTooBig)
+        } else if d > MINMAX_DEPTH_LIMIT || d <= 0{
+            Err(FlagError::IncorectDepth)
+        } else {
+            Ok(())
         }
-        if c > CAPTURED_NB_LIMIT {
-            return Err(FlagError::CapturedTooBig);
-        }
-        if r > CAPTURE_RANGE_LIMIT {
-            return Err(FlagError::RangeTooBig);
-        }
-        if a > ALIGNEMENT_NB_LIMIT {
-            return Err(FlagError::AlignementTooBig);
-        }
-        if m < 3 || m < a || m < r + 2 {
-            return Err(FlagError::MapTooSmall);
-        }
-        if a < 2 {
-            return Err(FlagError::AlignementTooSmall);
-        }
-        if r >= a {
-            return Err(FlagError::RangeTooBig);
-        }
-        Ok(())
     }
 }
 
