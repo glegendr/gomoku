@@ -144,7 +144,6 @@ pub fn iter_on_board(board: &Board, mode: Mode, color: Color) -> i32 {
         Mode::Diagonose => (add, add, (0, board.get_size() - 1))
     };
     let mut note: i32 = 0;
-    // let board = raw_board.get_board();
     let mut i: usize = 0;
     let mut coordinates = Coordinates::new(board.get_size(), start, mode);
     while i < board.get_total_tiles() {
