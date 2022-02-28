@@ -227,14 +227,5 @@ impl View {
         }
         self.draw_stones(board, context, graphics, players, last_input, finished);
         self.draw_buttons(context, graphics);
-        // self.draw_stone(context, graphics, self.black_color(false), [350.0, 45.0, 10.0, 10.0]);
-        // self.draw_stone(context, graphics, self.white_color(false), [450.0, 45.0, 10.0, 10.0]);
-        // self.draw_stone(context, graphics, Color::White, [100.0, 100.0, 100.0, 100.0])
     }
 }
-
-
-/*
-    println!("{}", board);
-    println!("{:?}", players);
-*/

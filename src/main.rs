@@ -16,6 +16,8 @@ mod heuristic;
 mod matching_cases;
 mod view;
 use view::{View};
+mod opening_move;
+use opening_move::{opening_move};
 
 extern crate piston;
 extern crate glutin_window;
@@ -82,17 +84,22 @@ fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mu
             }
         }
         PlayerType::Bot(_) => {
-            match players.get_current_player().get_player_color() {
-                Color::Black => {
-                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.0, depth);
-                    *trees.0 = bot_tree;
-                    bot_input
-                },
-                Color::White => {
-                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.1, depth);
-                    *trees.1 = bot_tree;
-                    bot_input
-                },
+            match opening_move(board, players, *turn_count) {
+                Some(o_move) => o_move,
+                _ => {
+                    match players.get_current_player().get_player_color() {
+                        Color::Black => {
+                            let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
+                            *trees.0 = bot_tree;
+                            bot_input
+                        },
+                        Color::White => {
+                            let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
+                            *trees.1 = bot_tree;
+                            bot_input
+                        },
+                    }
+                }
             }
         },
     };
@@ -145,19 +152,23 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
         PlayerType::Human => get_human_input_graphic(players.get_current_player().get_player_color(), mpos, event, view),
         PlayerType::Bot(_) => {
         let now = time::Instant::now();
-        let ret: (usize, usize);
-        match players.get_current_player().get_player_color() {
-                Color::Black => {
-                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.0, depth);
-                    new_trees.0 = bot_tree;
-                    ret = bot_input;
-                },
-                Color::White => {
-                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.1, depth);
-                    new_trees.1 = bot_tree;
-                    ret = bot_input;
-                },
+        let ret: Input = match opening_move(board, players, *turn_count) {
+            Some(o_move) => o_move,
+            _ => {
+                match players.get_current_player().get_player_color() {
+                    Color::Black => {
+                        let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
+                        new_trees.0 = bot_tree;
+                        bot_input
+                    },
+                    Color::White => {
+                        let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
+                        new_trees.1 = bot_tree;
+                        bot_input
+                    },
+                }
             }
+        };
         let elapsed_time = now.elapsed();
         println!("Input took {:?}.", elapsed_time);
         ret
@@ -485,13 +496,10 @@ fn main() {
             loop {
                 if game(get_mut_last(&mut board), get_mut_last(&mut players), (get_mut_last(&mut tree_player_1), get_mut_last(&mut tree_player_2)), &mut turn_count, depth) {
                     println!("{}", get_last(&board));
-                    println!("{:?}", get_last(&players));
                     break;
                 }
                 println!("{}", get_last(&board));
-                println!("{:?}", get_last(&players));
             }
-            
         }
     }
 }
