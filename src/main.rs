@@ -89,12 +89,12 @@ fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mu
                 _ => {
                     match players.get_current_player().get_player_color() {
                         Color::Black => {
-                            let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
+                            let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.0, depth);
                             *trees.0 = bot_tree;
                             bot_input
                         },
                         Color::White => {
-                            let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
+                            let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.1, depth);
                             *trees.1 = bot_tree;
                             bot_input
                         },
@@ -157,12 +157,12 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
             _ => {
                 match players.get_current_player().get_player_color() {
                     Color::Black => {
-                        let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
+                        let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.0, depth);
                         new_trees.0 = bot_tree;
                         bot_input
                     },
                     Color::White => {
-                        let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
+                        let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.1, depth);
                         new_trees.1 = bot_tree;
                         bot_input
                     },
