@@ -84,17 +84,22 @@ fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mu
             }
         }
         PlayerType::Bot(_) => {
-            match players.get_current_player().get_player_color() {
-                Color::Black => {
-                    let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
-                    *trees.0 = bot_tree;
-                    bot_input
-                },
-                Color::White => {
-                    let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
-                    *trees.1 = bot_tree;
-                    bot_input
-                },
+            match opening_move(board, players, *turn_count) {
+                Some(o_move) => o_move,
+                _ => {
+                    match players.get_current_player().get_player_color() {
+                        Color::Black => {
+                            let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.0);
+                            *trees.0 = bot_tree;
+                            bot_input
+                        },
+                        Color::White => {
+                            let (bot_input, bot_tree) = get_bot_input(&players, &board, trees.1);
+                            *trees.1 = bot_tree;
+                            bot_input
+                        },
+                    }
+                }
             }
         },
     };
@@ -489,13 +494,10 @@ fn main() {
             loop {
                 if game(get_mut_last(&mut board), get_mut_last(&mut players), (get_mut_last(&mut tree_player_1), get_mut_last(&mut tree_player_2)), &mut turn_count) {
                     println!("{}", get_last(&board));
-                    println!("{:?}", get_last(&players));
                     break;
                 }
                 println!("{}", get_last(&board));
-                println!("{:?}", get_last(&players));
             }
-            
         }
     }
 }

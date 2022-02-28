@@ -66,14 +66,14 @@ fn opening_third_move(board: &Board, middle_input: Input) -> Option<Input> {
     }
     if (middle_input.0 as i32) - (adv_move.0 as i32) < 0 {
         ret.0 = -1;
-    } else if (middle_input.0 as i32) - (adv_move.0 as i32) > 0 {
+    } else if (middle_input.0 as i32) - (adv_move.0 as i32) >= 0 {
         ret.0 = 1;
     } else {
         return None
     }
     if (middle_input.1 as i32) - (adv_move.1 as i32) < 0 {
         ret.1 = 1;
-    } else if (middle_input.1 as i32) - (adv_move.1 as i32) > 0 {
+    } else if (middle_input.1 as i32) - (adv_move.1 as i32) >= 0 {
         ret.1 = -1;
     } else {
         return None
