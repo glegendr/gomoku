@@ -143,7 +143,7 @@ impl View {
         );
     }
 
-    fn draw_stones<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G, players: &Players, input: Option<&Input>, finished: bool) {
+    fn draw_stones<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G, players: &Players, input: Option<&Input>, finished: bool, input_suggestion: Option<Input>) {
         let last_played: usize = match input {
             Some(x) => board.from_input(*x),
             None => usize::MAX
@@ -156,6 +156,8 @@ impl View {
                 }
             } else if board.check_add_value(board.get_input(i), players) != Ok(()) && !finished {
                 self.draw_stone(context, graphics, [0.67, 0.19, 0.06, 1.0], self.circle_at_center(board.get_input(i)), self.get_stone_size())
+            } else if input_suggestion != None && board.get_input(i) == input_suggestion.unwrap() {
+                self.draw_stone(context, graphics, [0.19, 0.67, 0.06, 1.0], self.circle_at_center(board.get_input(i)), self.get_stone_size())
             }
         }
     }
@@ -204,7 +206,7 @@ impl View {
         }
     }
 
-    pub fn draw<G: Graphics>(&self, board: &Board, players: &Players, context: &Context, graphics: &mut G, mpos: [f64; 2], finished: bool, last_input: Option<&Input>) {
+    pub fn draw<G: Graphics>(&self, board: &Board, players: &Players, context: &Context, graphics: &mut G, mpos: [f64; 2], finished: bool, last_input: Option<&Input>, input_suggestion: Option<Input>) {
         let color = match players.get_current_player().get_player_color() {
             Color::Black => self.black_color(false),
             _ => self.white_color(false)
@@ -225,7 +227,7 @@ impl View {
                 graphics
             );
         }
-        self.draw_stones(board, context, graphics, players, last_input, finished);
+        self.draw_stones(board, context, graphics, players, last_input, finished, input_suggestion);
         self.draw_buttons(context, graphics);
     }
 }

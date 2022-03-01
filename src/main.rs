@@ -84,7 +84,7 @@ fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mu
             }
         }
         PlayerType::Bot(_) => {
-            match opening_move(board, players, *turn_count) {
+            match opening_move(board, *turn_count) {
                 Some(o_move) => o_move,
                 _ => {
                     match players.get_current_player().get_player_color() {
@@ -116,6 +116,26 @@ fn game(board: &mut Board, players: &mut Players, trees: (&mut Option<Tree>, &mu
     false
 }
 
+
+fn determinate_input_suggestion(board: &Board, players: &Players, trees: (&Option<Tree>, &Option<Tree>), turn_count: &mut usize, depth: usize) -> Option<Input> {
+    match opening_move(board, *turn_count) {
+        Some(o_move) => Some(o_move),
+        _ => {
+            match players.get_current_player().get_player_color() {
+                Color::Black => {
+                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.0, depth);
+                    //new_trees.0 = bot_tree;
+                    Some(bot_input)
+                },
+                Color::White => {
+                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.1, depth);
+                    //new_trees.1 = bot_tree;
+                    Some(bot_input)
+                },
+            }
+        }
+    }
+}
 
 fn get_human_input_graphic<E: GenericEvent>(_player_color: Color, mpos: [f64; 2], event: &E, view: &View) -> Input {
     if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
@@ -152,7 +172,7 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
         PlayerType::Human => get_human_input_graphic(players.get_current_player().get_player_color(), mpos, event, view),
         PlayerType::Bot(_) => {
         let now = time::Instant::now();
-        let ret: Input = match opening_move(board, players, *turn_count) {
+        let ret: Input = match opening_move(board, *turn_count) {
             Some(o_move) => o_move,
             _ => {
                 match players.get_current_player().get_player_color() {
@@ -170,7 +190,6 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
             }
         };
         let elapsed_time = now.elapsed();
-        println!("Input took {:?}.", elapsed_time);
         ret
         },
     };
@@ -291,6 +310,7 @@ fn main() {
             let mut time_p1: Duration = Duration::new(0, 0);
             let mut time_p2: Duration = Duration::new(0, 0);
             let mut time_storage: Vec<u128> = Vec::new();
+            let mut input_suggestion: Option<Input> = None;
             while let Some(event) = events.next(&mut window) {
                 if let Some(Button::Mouse(MouseButton::Left)) = event.press_args() {
                     if mpos[0] > 50.0 && mpos[0] < 150.0
@@ -311,6 +331,7 @@ fn main() {
                             time_p1 = Duration::new(0, 0);
                             time_p2 = Duration::new(0, 0);
                             time_storage = Vec::new();
+                            input_suggestion = None;
                     } else if mpos[0] > 200.0 && mpos[0] < 300.0
                         && mpos[1] > 20.0 && mpos[1] < 70.0 {
                             if turn_count > 1 && get_last(&players).get_player(get_last(&players).get_current_player().get_player_color().get_inverse_color()).get_player_type() == PlayerType::Human {
@@ -345,6 +366,7 @@ fn main() {
                             start_p2 = time::Instant::now();
                             time_p1 = Duration::new(0, 0);
                             time_p2 = Duration::new(0, 0);
+                            input_suggestion = None;
                     } else if mpos[0] > 335.0 && mpos[0] < 375.0
                         && mpos[1] > 40.0 && mpos[1] < 90.0 {
                         players = players.iter().map(|x| {let mut ret = x.clone(); ret.change_player_type(Color::Black); ret}).collect();
@@ -378,14 +400,22 @@ fn main() {
                             if let Some(tree_2) = new_tree_2 {
                                 tree_player_2.push(Some(tree_2));
                             }
+                            input_suggestion = None;
                         }
                         (x, _, _) => finished = x
                     }
                 }
+                let suggestion_time = match get_last(&players).get_current_player().get_player_color() {
+                    Color::Black => start_p1,
+                    Color::White => start_p2
+                };
+                if suggestion_time.elapsed() > Duration::from_secs(3) && get_last(&players).get_current_player().get_player_type() == PlayerType::Human && input_suggestion == None {
+                    input_suggestion = determinate_input_suggestion(get_last(&board), get_last(&players), (get_last(&tree_player_1), get_last(&tree_player_2)), &mut turn_count, depth);
+                }
                 if let Some(args) = event.render_args() {
                     gl.draw(args.viewport(), |context, graphics| {
                         clear(view.get_background_color(), graphics);
-                        view.draw(get_last(&board), get_last(&players), &context, graphics, mpos, finished.is_some(), get_last_protected(&last_input));
+                        view.draw(get_last(&board), get_last(&players), &context, graphics, mpos, finished.is_some(), get_last_protected(&last_input), input_suggestion);
                         text::Text::new_color([0.0, 0.0, 0.0, 1.0], 32).draw(
                             "M", // Reset
                             arrows_glyph,

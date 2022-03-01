@@ -128,7 +128,7 @@ pub fn get_bot_input(players: Players, board: &Board, calculated_tree: &Option<T
                     let score = match players.get_current_player().get_player_type() {
                         PlayerType::Bot(Algorithm::Minimax) => minimax((depth - 1, depth), false, i32::MIN, i32::MAX, color, &mut tree, &c_lock),
                         PlayerType::Bot(Algorithm::Pvs) => pvs(&mut tree, depth - 1, i32::MIN + 1, i32::MAX, color),
-                        _ => unreachable!()
+                        _ => minimax((depth - 1, depth), false, i32::MIN, i32::MAX, color, &mut tree, &c_lock)
                     };
                     if score >= AVERAGE_PRUNNING && depth >= 5 {
                         let mut mut_lock = c_lock.write().unwrap();
