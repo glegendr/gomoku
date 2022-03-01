@@ -123,13 +123,11 @@ fn determinate_input_suggestion(board: &Board, players: &Players, trees: (&Optio
         _ => {
             match players.get_current_player().get_player_color() {
                 Color::Black => {
-                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.0, depth);
-                    //new_trees.0 = bot_tree;
+                    let (bot_input, _) = get_bot_input(*players, &board, trees.0, depth);
                     Some(bot_input)
                 },
                 Color::White => {
-                    let (bot_input, bot_tree) = get_bot_input(*players, &board, trees.1, depth);
-                    //new_trees.1 = bot_tree;
+                    let (bot_input, _) = get_bot_input(*players, &board, trees.1, depth);
                     Some(bot_input)
                 },
             }
@@ -171,7 +169,6 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
     let input = match players.get_current_player().get_player_type() {
         PlayerType::Human => get_human_input_graphic(players.get_current_player().get_player_color(), mpos, event, view),
         PlayerType::Bot(_) => {
-        let now = time::Instant::now();
         let ret: Input = match opening_move(board, *turn_count) {
             Some(o_move) => o_move,
             _ => {
@@ -189,7 +186,6 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
                 }
             }
         };
-        let elapsed_time = now.elapsed();
         ret
         },
     };
@@ -261,13 +257,15 @@ fn main() {
     let mut board: Vec<Board>;
     let mut players: Vec<Players>;
     let depth: usize;
+    let suggestion: bool;
     let visual: bool;
     match leakser(&mut args[1..]) {
-        Ok((s, c, r, a, v, p1, p2, d)) => {
+        Ok((s, c, r, a, v, p1, p2, d, sug)) => {
             board = vec![Board::new(s, a, r)];
             players = vec![Players::new(p1, p2, c, r)];
             visual = v;
             depth = d;
+            suggestion = sug;
         },
         Err((e, f)) => {
             if e != FlagError::PrintHelper && e != FlagError::PrintRules {
@@ -281,6 +279,7 @@ fn main() {
             process::exit(1);
         }
     };
+    println!("{}", suggestion);
     let mut tree_player_1: Vec<Option<Tree>> = vec![None];
     let mut tree_player_2: Vec<Option<Tree>> = vec![None];
     let mut turn_count: usize = 1;
@@ -405,12 +404,14 @@ fn main() {
                         (x, _, _) => finished = x
                     }
                 }
-                let suggestion_time = match get_last(&players).get_current_player().get_player_color() {
-                    Color::Black => start_p1,
-                    Color::White => start_p2
-                };
-                if suggestion_time.elapsed() > Duration::from_secs(3) && get_last(&players).get_current_player().get_player_type() == PlayerType::Human && input_suggestion == None {
-                    input_suggestion = determinate_input_suggestion(get_last(&board), get_last(&players), (get_last(&tree_player_1), get_last(&tree_player_2)), &mut turn_count, depth);
+                if suggestion == true {
+                    let suggestion_time = match get_last(&players).get_current_player().get_player_color() {
+                        Color::Black => start_p1,
+                        Color::White => start_p2
+                    };
+                    if suggestion_time.elapsed() > Duration::from_secs(3) && get_last(&players).get_current_player().get_player_type() == PlayerType::Human && input_suggestion == None {
+                        input_suggestion = determinate_input_suggestion(get_last(&board), get_last(&players), (get_last(&tree_player_1), get_last(&tree_player_2)), &mut turn_count, depth);
+                    }
                 }
                 if let Some(args) = event.render_args() {
                     gl.draw(args.viewport(), |context, graphics| {

@@ -38,7 +38,8 @@ struct OnOffFlag {
     visual: bool,
     special_rule: bool,
     morpion_rule: bool,
-    tenten_rule: bool
+    tenten_rule: bool,
+    suggestion: bool
 }
 
 struct PlayerFlag {
@@ -137,12 +138,14 @@ impl OnOffFlag {
             lst_flag: vec![
                 "-v".to_string(), "--visual".to_string(),
                 "--morpion".to_string(), "--MORPION".to_string(),
-                "--tenten".to_string(), "--TENTEN".to_string()
+                "--tenten".to_string(), "--TENTEN".to_string(),
+                "--suggestion".to_string()
             ],
             visual: false,
             special_rule: false,
             morpion_rule: false,
-            tenten_rule: false
+            tenten_rule: false,
+            suggestion: false
         }
     }
 
@@ -166,6 +169,10 @@ impl OnOffFlag {
         self.tenten_rule
     }
 
+    fn get_suggestion_flag(&self) -> bool {
+        self.suggestion
+    }
+
     fn assign_special_rule(&mut self) -> bool {
         match self.get_special_rule() {
             true => false,
@@ -181,6 +188,7 @@ impl OnOffFlag {
             "-v" | "--visual" => self.visual = !self.get_visual_flag(),
             "--morpion" | "--MORPION" => self.morpion_rule = self.assign_special_rule(),
             "--tenten" | "--TENTEN" => self.tenten_rule = self.assign_special_rule(),
+            "--suggestion" => self.suggestion = !self.get_suggestion_flag(),
             _ => ()
         }
     }
@@ -278,7 +286,7 @@ fn assign_values(
     map_flag: MapFlag,
     on_off_flag: OnOffFlag,
     player_flag:PlayerFlag
-) -> Result<(usize, usize, usize, usize, bool, Player, Player, usize), (FlagError, usize)> {
+) -> Result<(usize, usize, usize, usize, bool, Player, Player, usize, bool), (FlagError, usize)> {
     if on_off_flag.get_morpion_rule() == true {
         Ok((
             MORPION_S,
@@ -289,6 +297,7 @@ fn assign_values(
             player_flag.get_player1(),
             player_flag.get_player2(),
             map_flag.depth,
+            on_off_flag.get_suggestion_flag()
         ))
     } else if on_off_flag.get_tenten_rule() == true {
         Ok((
@@ -299,7 +308,8 @@ fn assign_values(
             on_off_flag.get_visual_flag(),
             player_flag.get_player1(),
             player_flag.get_player2(),
-            map_flag.depth
+            map_flag.depth,
+            on_off_flag.get_suggestion_flag()
         ))
     } else {
         Ok((
@@ -310,14 +320,15 @@ fn assign_values(
             on_off_flag.get_visual_flag(),
             player_flag.get_player1(),
             player_flag.get_player2(),
-            map_flag.depth
+            map_flag.depth,
+            on_off_flag.get_suggestion_flag()
         ))
     }
 }
 
 pub fn leakser(
     flags: &mut [String]
-) -> Result<(usize, usize, usize, usize, bool, Player, Player, usize), (FlagError, usize)> {
+) -> Result<(usize, usize, usize, usize, bool, Player, Player, usize, bool), (FlagError, usize)> {
     match check_helper(flags) {
         Err(e) => return Err((e, usize::MAX)),
         _ => ()
@@ -383,6 +394,7 @@ fn print_helper() {
     println!("\t-p1 --player1 <Player>\t\tchange Player type (human/bot/pvs/minimax)");
     println!("\t-p2 --player2 <Player>\t\tchange Player type (human/bot/pvs/minimax)");
     println!("\t    --rules\t\t\tdisplay gomoku\'s rules");
+    println!("\t    --suggestion\t\tprint move suggestion for human player");
     println!("\t-d, --depth\t\t\tset minimax depth value");
     println!("\t-h, --help\t\t\tdisplay help information");
 }
