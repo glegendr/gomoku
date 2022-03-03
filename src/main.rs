@@ -11,7 +11,7 @@ use players::*;
 mod algo;
 use algo::{get_bot_input, Tree};
 mod leakser;
-use leakser::{leakser};
+use leakser::{leakser, DEPTH_SUGGESTION};
 mod heuristic;
 mod matching_cases;
 mod view;
@@ -279,7 +279,6 @@ fn main() {
             process::exit(1);
         }
     };
-    println!("{}", suggestion);
     let mut tree_player_1: Vec<Option<Tree>> = vec![None];
     let mut tree_player_2: Vec<Option<Tree>> = vec![None];
     let mut turn_count: usize = 1;
@@ -409,8 +408,8 @@ fn main() {
                         Color::Black => start_p1,
                         Color::White => start_p2
                     };
-                    if suggestion_time.elapsed() > Duration::from_secs(3) && get_last(&players).get_current_player().get_player_type() == PlayerType::Human && input_suggestion == None {
-                        input_suggestion = determinate_input_suggestion(get_last(&board), get_last(&players), (get_last(&tree_player_1), get_last(&tree_player_2)), &mut turn_count, depth);
+                    if suggestion_time.elapsed() > Duration::from_secs(4) && get_last(&players).get_current_player().get_player_type() == PlayerType::Human && input_suggestion == None {
+                        input_suggestion = determinate_input_suggestion(get_last(&board), get_last(&players), (get_last(&tree_player_1), get_last(&tree_player_2)), &mut turn_count, DEPTH_SUGGESTION);
                     }
                 }
                 if let Some(args) = event.render_args() {

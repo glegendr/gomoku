@@ -3,7 +3,6 @@ use color::{Color};
 
 pub fn opening_move(board: &Board, turn_count: usize) -> Option<Input> {
     let middle_input: Input = (board.get_size() / 2, board.get_size() / 2);
-    println!("{}", verify_input(board, middle_input, 0, 1, Color::Black));
     match turn_count {
         1 => Some(middle_input),
         2 => opening_second_move(board, middle_input),
