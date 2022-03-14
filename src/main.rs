@@ -36,6 +36,8 @@ use opengl_graphics::*;
 use std::path::Path;
 use graphics::*;
 
+const SUGGESTION_TIME: u64 = 4;
+
 fn get_human_input(_player_color: Color) -> Result<Input, PlacementError> {
     let mut guess = String::new();
     io::stdin()
@@ -152,15 +154,12 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
     let mut option_ret = None;
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
-            println!("BRAVO {:?} \"{}\"", color, color);
             return (Some(Some(color)), None, None)
         },
         ((true, None), _) => {
-            println!("DRAW !");
             return (Some(None), None, None)
         },
         ((true, Some(color)), _) => {
-            println!("BRAVO {:?} \"{}\"", color, color);
             return (Some(Some(color)), None, None)
         },
         _ => ()
@@ -195,7 +194,6 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
         match new_board.add_value(input, &mut new_players) {
             Ok(_) => {
                 *turn_count += 1;
-                println!("Turn: {}", *turn_count / 2);
                 new_players.next_player();
                 option_ret = Some((new_board, new_players, new_trees));
             },
@@ -257,15 +255,20 @@ fn main() {
     let mut board: Vec<Board>;
     let mut players: Vec<Players>;
     let depth: usize;
-    let suggestion: bool;
+    let mut suggestion: bool;
     let visual: bool;
     match leakser(&mut args[1..]) {
-        Ok((s, c, r, a, v, p1, p2, d, sug)) => {
+        Ok((s, c, r, a, v, p1, p2, d, _sug)) => {
             board = vec![Board::new(s, a, r)];
             players = vec![Players::new(p1, p2, c, r)];
             visual = v;
             depth = d;
-            suggestion = sug;
+            //suggestion = sug;
+            if p1.get_player_type() == PlayerType::Human && p2.get_player_type() == PlayerType::Human {
+                suggestion = true;
+            } else {
+                suggestion = false;
+            }
         },
         Err((e, f)) => {
             if e != FlagError::PrintHelper && e != FlagError::PrintRules {
@@ -368,9 +371,19 @@ fn main() {
                     } else if mpos[0] > 335.0 && mpos[0] < 375.0
                         && mpos[1] > 40.0 && mpos[1] < 90.0 {
                         players = players.iter().map(|x| {let mut ret = x.clone(); ret.change_player_type(Color::Black); ret}).collect();
+                        if get_last(&players).get_player(Color::Black).get_player_type() == PlayerType::Human && get_last(&players).get_player(Color::White).get_player_type() == PlayerType::Human {
+                            suggestion = true;
+                        } else {
+                            suggestion = false;
+                        }
                     } else if mpos[0] > 435.0 && mpos[0] < 475.0
                         && mpos[1] > 40.0 && mpos[1] < 90.0 {
-                            players = players.iter().map(|x| {let mut ret = x.clone(); ret.change_player_type(Color::White); ret}).collect();
+                        players = players.iter().map(|x| {let mut ret = x.clone(); ret.change_player_type(Color::White); ret}).collect();
+                        if get_last(&players).get_player(Color::Black).get_player_type() == PlayerType::Human && get_last(&players).get_player(Color::White).get_player_type() == PlayerType::Human {
+                            suggestion = true;
+                        } else {
+                            suggestion = false;
+                        }
                         }
                 }
                 if let Some(pos) = event.mouse_cursor_args() {
@@ -408,7 +421,7 @@ fn main() {
                         Color::Black => start_p1,
                         Color::White => start_p2
                     };
-                    if suggestion_time.elapsed() > Duration::from_secs(4) && get_last(&players).get_current_player().get_player_type() == PlayerType::Human && input_suggestion == None {
+                    if suggestion_time.elapsed() > Duration::from_secs(SUGGESTION_TIME) && get_last(&players).get_current_player().get_player_type() == PlayerType::Human && input_suggestion == None {
                         input_suggestion = determinate_input_suggestion(get_last(&board), get_last(&players), (get_last(&tree_player_1), get_last(&tree_player_2)), &mut turn_count, DEPTH_SUGGESTION);
                     }
                 }
