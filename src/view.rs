@@ -143,21 +143,37 @@ impl View {
         );
     }
 
-    fn draw_stones<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G, players: &Players, input: Option<&Input>, finished: bool, input_suggestion: Option<Input>) {
+    fn draw_stones<G: Graphics>(&self, board: &Board, context: &Context, graphics: &mut G, players: &Players, input: Option<&Input>, finished: bool, input_suggestion: Option<Input>, mpos: [f64; 2]) {
         let last_played: usize = match input {
             Some(x) => board.from_input(*x),
             None => usize::MAX
         };
+        let color = match players.get_current_player().get_player_color() {
+            Color::Black => self.black_color(false),
+            _ => self.white_color(false)
+        };
+        let player_input = ((mpos[0] as usize - self.get_grid_start() as usize) / self.get_cell_size() as usize, (mpos[1] as usize - self.get_grid_start() as usize) / self.get_cell_size() as usize);
+        let player_pos = board.from_input(player_input);
+        if mpos[0] > self.get_grid_start() && mpos[0] < self.get_grid_end() - self.get_imprecision()
+            && mpos[1] > self.get_grid_start() && mpos[1] < self.get_grid_end() - self.get_imprecision() && !finished {
+                self.draw_stone(
+                    context,
+                    graphics,
+                    color,
+                    self.circle_at_center(player_input),
+                    self.get_stone_size()
+                );
+        }
         for (i, stone) in board.get_board().iter().enumerate() {
-            if let Tile::Color(color) = *stone {
+            if input_suggestion != None && board.get_input(i) == input_suggestion.unwrap() && i != player_pos && !finished {
+                self.draw_stone(context, graphics, [0.19, 0.67, 0.06, 1.0], self.circle_at_center(board.get_input(i)), self.get_stone_size())
+            } else if let Tile::Color(color) = *stone {
                 match color {
                     Color::Black => self.draw_stone(context, graphics, self.black_color(i == last_played), self.circle_at_center(board.get_input(i)), self.get_stone_size()),
                     Color::White => self.draw_stone(context, graphics, self.white_color(i == last_played), self.circle_at_center(board.get_input(i)), self.get_stone_size())
                 }
             } else if board.check_add_value(board.get_input(i), players) != Ok(()) && !finished {
                 self.draw_stone(context, graphics, [0.67, 0.19, 0.06, 1.0], self.circle_at_center(board.get_input(i)), self.get_stone_size())
-            } else if input_suggestion != None && board.get_input(i) == input_suggestion.unwrap() {
-                self.draw_stone(context, graphics, [0.19, 0.67, 0.06, 1.0], self.circle_at_center(board.get_input(i)), self.get_stone_size())
             }
         }
     }
@@ -207,27 +223,8 @@ impl View {
     }
 
     pub fn draw<G: Graphics>(&self, board: &Board, players: &Players, context: &Context, graphics: &mut G, mpos: [f64; 2], finished: bool, last_input: Option<&Input>, input_suggestion: Option<Input>) {
-        let color = match players.get_current_player().get_player_color() {
-            Color::Black => self.black_color(false),
-            _ => self.white_color(false)
-        };
         self.draw_grid(board, context, graphics);
-        if mpos[0] > self.get_grid_start() && mpos[0] < self.get_grid_end() - self.get_imprecision()
-            && mpos[1] > self.get_grid_start() && mpos[1] < self.get_grid_end() - self.get_imprecision() && !finished {
-            View::draw_circle(
-                color,
-                self.get_stone_size() / 2.0,
-                self.get_circle_start(),
-                self.get_circle_end(),
-                self.circle_at_center((
-                        (mpos[0] as usize - self.get_grid_start() as usize) / self.get_cell_size() as usize,
-                        (mpos[1] as usize - self.get_grid_start() as usize) / self.get_cell_size() as usize
-                )),
-                context,
-                graphics
-            );
-        }
-        self.draw_stones(board, context, graphics, players, last_input, finished, input_suggestion);
+        self.draw_stones(board, context, graphics, players, last_input, finished, input_suggestion, mpos);
         self.draw_buttons(context, graphics);
     }
 }

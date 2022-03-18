@@ -5,11 +5,10 @@ const ALIGNEMENT_NB: usize = 5;
 const MINMAX_DEPTH: usize = 5;
 pub const DEPTH_SUGGESTION: usize = 4;
 
-const BOARD_LENGTH_LIMIT: usize = 99;
-const CAPTURED_NB_LIMIT: usize = 999;
-const CAPTURE_RANGE_LIMIT: usize = 99;
-const ALIGNEMENT_NB_LIMIT: usize = 99;
-const MINMAX_DEPTH_LIMIT: usize = 10;
+pub const BOARD_LENGTH_LIMIT: usize = 50;
+pub const CAPTURED_NB_LIMIT: usize = 999;
+const CAPTURE_RANGE_LIMIT: usize = BOARD_LENGTH_LIMIT - 2;
+pub const MINMAX_DEPTH_LIMIT: usize = 10;
 
 const MORPION_S: usize = 3;
 const MORPION_C: usize = 1;
@@ -113,19 +112,19 @@ impl MapFlag {
         let d = self.depth;
         if m > BOARD_LENGTH_LIMIT {
             Err(FlagError::MapTooBig)
-        } else if c > CAPTURED_NB_LIMIT {
+        } else if c > CAPTURED_NB_LIMIT || c <= 0 {
             Err(FlagError::CapturedTooBig)
         } else if r > CAPTURE_RANGE_LIMIT {
-            Err(FlagError::RangeTooBig)
-        } else if a > ALIGNEMENT_NB_LIMIT {
-            Err(FlagError::AlignementTooBig)
-        } else if m < 3 || m < a || m < r + 2 {
+            Err(FlagError::RangeTooBig(CAPTURE_RANGE_LIMIT))
+        } else if m < a {
+            Err(FlagError::AlignementTooBig(m))
+        } else if m < 3 || m < r + 2 {
             Err(FlagError::MapTooSmall)
         }  else if a < 2 {
             Err(FlagError::AlignementTooSmall)
         } else if r >= a {
-            Err(FlagError::RangeTooBig)
-        } else if d > MINMAX_DEPTH_LIMIT || d <= 0{
+            Err(FlagError::RangeTooBig(a + 1))
+        } else if d > MINMAX_DEPTH_LIMIT || d <= 0 {
             Err(FlagError::IncorectDepth)
         } else {
             Ok(())
@@ -385,28 +384,28 @@ pub fn leakser(
 fn print_helper() {
     println!("USAGE: cargo run --release [--] [OPTIONS]\n");
     println!("OPTIONS:");
-    println!("\t-s, --size <Value>\t\tsize of gomoku\'s board");
+    println!("\t-s, --size <Value>\t\tsize of gomoku's board");
     println!("\t-c, --captured <Value>\t\tnumber of stones to capture to win");
-    println!("\t-r, --range <Value>\t\trange used for capture opponent\'s stones");
+    println!("\t-r, --range <Value>\t\trange used for capture opponent's stones");
     println!("\t-a, --alignement <Value>\tnumber of stones to align for win");
-    println!("\t-v, --visual\t\t\toutput is a graphical window");
-    println!("\t    --morpion\t\t\tset value for a morpion game");
-    println!("\t    --tenten\t\t\tset value with a ten\'s map");
+    println!("\t-d, --depth\t\t\tset minimax depth value");
     println!("\t-p1 --player1 <Player>\t\tchange Player type (human/bot/pvs/minimax)");
     println!("\t-p2 --player2 <Player>\t\tchange Player type (human/bot/pvs/minimax)");
-    println!("\t    --rules\t\t\tdisplay gomoku\'s rules");
     println!("\t    --suggestion\t\tprint move suggestion for human player");
-    println!("\t-d, --depth\t\t\tset minimax depth value");
+    println!("\t-v, --visual\t\t\toutput is a graphical window");
+    println!("\t    --morpion\t\t\tset value for a morpion game");
+    println!("\t    --tenten\t\t\tset value with a ten's map");
+    println!("\t    --rules\t\t\tdisplay gomoku\'s rules");
     println!("\t-h, --help\t\t\tdisplay help information");
 }
 
 
 fn print_rules() {
-    println!("\nThe rules are simple, two players take turns placing stones of their color on an intersection of the board");
-    println!("and the game ends when one player manages to align five stones or capture 10 opponent's stones to win the game.");
+    println!("\nThe rules are simple, two players take turns placing stones of their color on an intersection of the board.");
+    println!("The game ends when one player manages to align five stones or capture 10 opponent's stones.");
     println!("The game is played on a 19x19 Goban, without limit to the number of stones.\n");
     println!("A player that manages to align five stones only wins if the opponent can not break this alignment by capturing a pair.");
-    println!("To capture a pair of your opponent’s stones and remove them from the board, flank them with your own stones.");
+    println!("To capture a pair of your opponent's stones and remove them from the board, flank them with your own stones.");
     println!("Example:\n\t. . . .\n\tX O O A\n\t. . . .\n");
     println!("In this scenario, by playing in A, X captures the O pair and removes the stones from the game.");
     println!("The now-free intersections can be played on as if they were never occupied.\n");
@@ -415,5 +414,5 @@ fn print_rules() {
     println!("Example:\n\t. . . . .\n\t. X . . .\n\t. . X . .\n\t. . . X .\n\t. . . . .\n");
     println!("A double-three is a move that introduces two simultaneous free-three alignments. This is an indefendable scenario.");
     println!("Example:\n\t. . . . . . . .\n\t. X . . . . . .\n\t. . X . . . . .\n\t. . . . . . . .\n\t. . . . A X X .\n");
-    println!("In this scenario, by playing in a, X would introduce a double-three, therefore this is a forbidden move.");
+    println!("In this scenario, by playing in A, X would introduce a double-three, therefore this is a forbidden move.");
 }

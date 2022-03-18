@@ -150,7 +150,16 @@ fn get_human_input_graphic<E: GenericEvent>(_player_color: Color, mpos: [f64; 2]
     (usize::MAX, usize::MAX)
 }
 
-fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2], event: &E, view: &View, trees: (&Option<Tree>, &Option<Tree>), turn_count: &mut usize, depth: usize) -> (Option<Option<Color>>, Option<(Board, Players, (Option<Tree>, Option<Tree>))>, Option<Input>) {
+fn game_graphic<E: GenericEvent>(
+    board: &Board,
+    players: &Players,
+    mpos: [f64; 2],
+    event: &E,
+    view: &View,
+    trees: (&Option<Tree>, &Option<Tree>),
+    turn_count: &mut usize,
+    depth: usize
+) -> (Option<Option<Color>>, Option<(Board, Players, (Option<Tree>, Option<Tree>))>, Option<Input>) {
     let mut option_ret = None;
     match (board.is_finished(players.get_current_player()), players.is_finished()) {
         (_, (true, Some(color))) => {
@@ -197,7 +206,7 @@ fn game_graphic<E: GenericEvent>(board: &Board, players: &Players, mpos: [f64; 2
                 new_players.next_player();
                 option_ret = Some((new_board, new_players, new_trees));
             },
-            Err(e) => println!("{}", e)
+            Err(_e) => ()
         }
     };
     (None, option_ret, Some(input))
@@ -413,7 +422,7 @@ fn main() {
                             }
                             input_suggestion = None;
                         }
-                        (x, _, _) => finished = x
+                        (x, _, _) => finished = x,
                     }
                 }
                 if suggestion == true {
@@ -512,12 +521,12 @@ fn main() {
                             graphics
                         ).unwrap();
                         if get_last(&players).get_player(Color::Black).get_player_type() == PlayerType::Human {
-                            view.draw_stone(&context, graphics, view.black_color(false), [350.0, 40.0, 15.0, 15.0], 25.0); // 13
+                            view.draw_stone(&context, graphics, view.black_color(false), [350.0, 40.0, 15.0, 15.0], 25.0);
                         } else {
                             image(&robot_black, context.transform.trans(330.0, 20.0), graphics);
                         }
                         if get_last(&players).get_player(Color::White).get_player_type() == PlayerType::Human {
-                            view.draw_stone(&context, graphics, view.white_color(false), [450.0, 40.0, 15.0, 15.0], 25.0); // 26.73
+                            view.draw_stone(&context, graphics, view.white_color(false), [450.0, 40.0, 15.0, 15.0], 25.0);
                         } else {
                             image(&robot_white, context.transform.trans(430.0, 20.0), graphics);
                         }

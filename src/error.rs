@@ -1,4 +1,9 @@
 use std::fmt;
+use crate::leakser::{
+    BOARD_LENGTH_LIMIT,
+    CAPTURED_NB_LIMIT,
+    MINMAX_DEPTH_LIMIT
+};
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum PlacementError {
@@ -13,8 +18,8 @@ pub enum FlagError {
     WrongFlag,
     MapTooBig,
     CapturedTooBig,
-    RangeTooBig,
-    AlignementTooBig,
+    RangeTooBig(usize),
+    AlignementTooBig(usize),
     AlignementTooSmall,
     MapTooSmall,
     FlagNeedValue,
@@ -40,10 +45,10 @@ impl fmt::Display for FlagError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             FlagError::WrongFlag => write!(f, "This flag doesn't exist"),
-            FlagError::MapTooBig => write!(f, "Your map is too big"),
-            FlagError::CapturedTooBig => write!(f, "Your captured number is too big"),
-            FlagError::RangeTooBig => write!(f, "Your range is too big"),
-            FlagError::AlignementTooBig => write!(f, "Your alignement number is too big"),
+            FlagError::MapTooBig => write!(f, "Size must be countained between 3 and {}", BOARD_LENGTH_LIMIT),
+            FlagError::CapturedTooBig => write!(f, "Capture number must be countained between 1 and {}", CAPTURED_NB_LIMIT),
+            FlagError::RangeTooBig(max) => write!(f, "Range must be countained between 0 and {}", max),
+            FlagError::AlignementTooBig(max) => write!(f, "Alignement must be countained between 2 and {}", max),
             FlagError::AlignementTooSmall => write!(f, "Your alignement number is too small"),
             FlagError::MapTooSmall => write!(f, "Your map is too small"),
             FlagError::FlagNeedValue => write!(f, "This flag need a value"),
@@ -51,7 +56,7 @@ impl fmt::Display for FlagError {
             FlagError::IncorrectValue => write!(f, "That's an incorrect value"),
             FlagError::PrintRules => write!(f, ""),
             FlagError::PrintHelper => write!(f, ""),
-            FlagError::IncorectDepth => write!(f, "Depth must be countained between 1 and 10")
+            FlagError::IncorectDepth => write!(f, "Depth must be countained between 1 and {}", MINMAX_DEPTH_LIMIT)
         }
     }
 }
