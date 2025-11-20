@@ -45,4 +45,3 @@ Example:
 . . . . A X X .
 ```     
 In this scenario, by playing in A, X would introduce a double-three, therefore this is a forbidden move.      
-}
